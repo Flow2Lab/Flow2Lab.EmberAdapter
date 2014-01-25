@@ -78,7 +78,7 @@ class GenericEmberModel implements EmberModelInterface {
 
 		/** @var Attribute\AbstractAttribute $attribute */
 		foreach ($this->attributes as $attribute) {
-			$attributes[$attribute->getName()] = $attribute->getValue();
+			$attributes[$attribute->getName()] = $attribute->serialize();
 		}
 
 		return $attributes;

@@ -38,4 +38,20 @@ abstract class AbstractAttribute {
 		return $this->value;
 	}
 
+	/**
+	 * Serializes any the value to match the ember attributes requirements
+	 *
+	 * @return mixed
+	 * @throw \InvalidArgumentException if the value cannot be serialized
+	 */
+	abstract public function serialize();
+
+	/**
+	 * Deserializes any value to match the flow property requirements
+	 *
+	 * @return mixed
+	 * @throw \InvalidArgumentException if the value cannot be serialized
+	 */
+	abstract public function deSerialize();
+
 }
