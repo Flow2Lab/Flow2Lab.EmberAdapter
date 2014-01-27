@@ -4,6 +4,13 @@ namespace Flowpack\EmberAdapter\Annotations;
 abstract class AbstractRelationAttribute {
 
 	/**
+	 * Attribute name in the ember model. If left empty, the class property name will be used.
+	 *
+	 * @var string
+	 */
+	public $name;
+
+	/**
 	 * Name of the model this attribute belongs to.
 	 *
 	 * @var string
@@ -23,13 +30,17 @@ abstract class AbstractRelationAttribute {
 	 *
 	 * @var string
 	 */
-	public $inverse = '';
+	public $inverse;
 
 	/**
 	 * @param array $values
 	 * @throws \InvalidArgumentException
 	 */
 	public function __construct(array $values) {
+		if (isset($values['name']) || isset($values['value'])) {
+			$this->name = isset($values['name']) ? $values['name'] : $values['value'];
+		}
+
 		if (!isset($values['model']) && !isset($values['value'])) {
 			throw new \InvalidArgumentException('The hasMany annotation requires a model name.');
 		}
