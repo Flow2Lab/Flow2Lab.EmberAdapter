@@ -47,11 +47,11 @@ abstract class AbstractAttribute {
 	abstract public function serialize();
 
 	/**
-	 * Deserializes any value to match the flow property requirements
+	 * Unserializes any value to match the flow property requirements
 	 *
 	 * @return mixed
 	 * @throw \InvalidArgumentException if the value cannot be serialized
 	 */
-	abstract public function deSerialize();
+	abstract public function unserialize();
 
 }

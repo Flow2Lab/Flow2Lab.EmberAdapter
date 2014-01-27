@@ -21,12 +21,12 @@ class String extends AbstractAttribute {
 	}
 
 	/**
-	 * Deserializes the value to match flow property requirements.
+	 * Unserializes the value to match flow property requirements.
 	 *
 	 * @return string
 	 * @throw \InvalidArgumentException if the value cannot be serialized
 	 */
-	public function deSerialize() {
+	public function unserialize() {
 		// not implemented yet
 	}
 

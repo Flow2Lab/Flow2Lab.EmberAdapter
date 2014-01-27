@@ -14,12 +14,12 @@ class Number extends AbstractAttribute {
 	}
 
 	/**
-	 * Deserializes any value to match the flow property requirements
+	 * Unserializes any value to match the flow property requirements
 	 *
 	 * @return mixed
 	 * @throw \InvalidArgumentException if the value cannot be serialized
 	 */
-	public function deSerialize() {
+	public function unserialize() {
 		return (float) $this->value;
 	}
 
