@@ -15,7 +15,8 @@ class String extends AbstractAttribute {
 		} else if (is_object($this->value) && method_exists($this->value, '__toString')) {
 			return (string) $this->value;
 		} else {
-			throw new \InvalidArgumentException();
+			// todo: introduce own exception, make it more meaningful
+			throw new \InvalidArgumentException('Unable to convert the value to a string.');
 		}
 	}
 
