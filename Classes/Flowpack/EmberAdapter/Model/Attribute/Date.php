@@ -12,7 +12,7 @@ class Date extends AbstractAttribute {
 	 */
 	public function serialize() {
 		if ($this->value instanceof \DateTime) {
-			return $this->value->format(\DateTime::W3C);
+			return $this->value->format(\DateTime::ISO8601);
 		}
 
 		return NULL;
