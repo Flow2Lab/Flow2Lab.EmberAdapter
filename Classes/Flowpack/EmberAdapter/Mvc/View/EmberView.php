@@ -80,7 +80,8 @@ class EmberView extends AbstractView {
 
 		foreach ($groupedModels as $modelName => $models) {
 			if (count($models) === 1) {
-				$convertedModels[$modelName] = $this->convertModelToArray($models[0]);
+				$singularModelName = lcfirst($modelName);
+				$convertedModels[$singularModelName] = $this->convertModelToArray($models[0]);
 			} else {
 				$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
 				$convertedModels[$pluralizedModelName] = array();
