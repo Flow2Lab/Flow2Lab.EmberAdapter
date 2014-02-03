@@ -4,25 +4,24 @@ namespace Flowpack\EmberAdapter\Model;
 interface EmberModelInterface {
 
 	/**
-	 * Must return the models name in singular.
+	 * Returns the models name in singular.
 	 *
 	 * @return string
 	 */
 	public function getName();
 
 	/**
-	 * Must return the models identifier.
+	 * Returns the models identifier.
 	 *
 	 * @return string
 	 */
 	public function getId();
 
 	/**
-	 * Must return an array with the attribute names as key. If an attribute is a relation of any kind,
-	 * the value must be the related models identifier(s).
+	 * Returns the models attributes.
 	 *
-	 * @return array
+	 * @return AttributeCollection
 	 */
-	public function getAttributesArray();
+	public function getAttributes();
 
 }

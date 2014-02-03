@@ -68,20 +68,12 @@ class GenericEmberModel implements EmberModelInterface {
 	}
 
 	/**
-	 * Must return an array with the attribute names as key. If an attribute is a relation of any kind,
-	 * the value must be the related models identifier(s).
+	 * Returns the models attributes.
 	 *
-	 * @return array
+	 * @return AttributeCollection
 	 */
-	public function getAttributesArray() {
-		$attributes = array();
-
-		/** @var Attribute\AbstractAttribute $attribute */
-		foreach ($this->attributes as $attribute) {
-			$attributes[$attribute->getName()] = $attribute->serialize();
-		}
-
-		return $attributes;
+	public function getAttributes() {
+		return $this->attributes;
 	}
 
 }

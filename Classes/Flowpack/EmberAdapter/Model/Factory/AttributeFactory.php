@@ -5,6 +5,7 @@ use Flowpack\EmberAdapter\Model\Attribute\AbstractAttribute;
 use Flowpack\EmberAdapter\Model\Attribute\Boolean;
 use Flowpack\EmberAdapter\Model\Attribute\Date;
 use Flowpack\EmberAdapter\Model\Attribute\Number;
+use Flowpack\EmberAdapter\Model\Attribute\Raw;
 use Flowpack\EmberAdapter\Model\Attribute\String;
 use TYPO3\Flow\Annotations as Flow;
 
@@ -30,6 +31,8 @@ class AttributeFactory {
 				return new Date($attributeName, $attributeValue);
 			case 'number':
 				return new Number($attributeName, $attributeValue);
+			case 'raw':
+				return new Raw($attributeName, $attributeValue);
 			case 'string':
 			default:
 				return new String($attributeName, $attributeValue);

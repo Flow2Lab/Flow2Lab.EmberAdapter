@@ -11,6 +11,8 @@ abstract class AbstractAttribute {
 	protected $name;
 
 	/**
+	 * The value to be transformed by transforms.
+	 *
 	 * @var mixed
 	 */
 	protected $value;
@@ -37,21 +39,5 @@ abstract class AbstractAttribute {
 	public function getValue() {
 		return $this->value;
 	}
-
-	/**
-	 * Serializes any the value to match the ember attributes requirements
-	 *
-	 * @return mixed
-	 * @throw \InvalidArgumentException if the value cannot be serialized
-	 */
-	abstract public function serialize();
-
-	/**
-	 * Unserializes any value to match the flow property requirements
-	 *
-	 * @return mixed
-	 * @throw \InvalidArgumentException if the value cannot be serialized
-	 */
-	abstract public function unserialize();
 
 }

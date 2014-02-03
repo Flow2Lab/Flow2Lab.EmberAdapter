@@ -4,6 +4,7 @@ namespace Flowpack\EmberAdapter\Mvc\View;
 use Flowpack\EmberAdapter\Model\EmberModelInterface;
 use Flowpack\EmberAdapter\Model\Factory\AttributeFactory;
 use Flowpack\EmberAdapter\Model\GenericEmberModel;
+use Flowpack\EmberAdapter\Model\Serializer\ArraySerializer;
 use Flowpack\EmberAdapter\Utility\EmberInflector;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Mvc\View\AbstractView;
@@ -24,6 +25,12 @@ class EmberView extends AbstractView {
 	 * @var \Flowpack\EmberAdapter\Reflection\ReflectionService
 	 */
 	protected $reflectionService;
+
+	/**
+	 * @Flow\Inject
+	 * @var ArraySerializer
+	 */
+	protected $emberModelSerializer;
 
 	/**
 	 * @Flow\Inject
@@ -81,29 +88,18 @@ class EmberView extends AbstractView {
 		foreach ($groupedModels as $modelName => $models) {
 			if (count($models) === 1) {
 				$singularModelName = lcfirst($modelName);
-				$convertedModels[$singularModelName] = $this->convertModelToArray($models[0]);
+				$convertedModels[$singularModelName] = $this->emberModelSerializer->serialize($models[0]);
 			} else {
 				$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
 				$convertedModels[$pluralizedModelName] = array();
 
 				foreach ($models as $model) {
-					$convertedModels[$pluralizedModelName][] = $this->convertModelToArray($model);
+					$convertedModels[$pluralizedModelName][] = $this->emberModelSerializer->serialize($model);
 				}
 			}
 		}
 
 		return $convertedModels;
-	}
-
-	/**
-	 * @param EmberModelInterface $emberModel
-	 * @return array
-	 */
-	protected function convertModelToArray(EmberModelInterface $emberModel) {
-		$attributes = $emberModel->getAttributesArray();
-		$attributes['id'] = $emberModel->getId();
-
-		return $attributes;
 	}
 
 	/**
