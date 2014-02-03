@@ -2,41 +2,27 @@
 namespace Flowpack\EmberAdapter\Mvc\View;
 
 use Flowpack\EmberAdapter\Model\EmberModelInterface;
-use Flowpack\EmberAdapter\Model\Factory\AttributeFactory;
-use Flowpack\EmberAdapter\Model\GenericEmberModel;
+use Flowpack\EmberAdapter\Model\Factory\EmberModelFactory;
 use Flowpack\EmberAdapter\Model\Serializer\ArraySerializer;
 use Flowpack\EmberAdapter\Utility\EmberInflector;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Mvc\View\AbstractView;
 use TYPO3\Flow\Mvc\View\JsonView;
-use TYPO3\Flow\Persistence\PersistenceManagerInterface;
 use TYPO3\Flow\Reflection\ObjectAccess;
 
 class EmberView extends AbstractView {
 
 	/**
 	 * @Flow\Inject
-	 * @var PersistenceManagerInterface
+	 * @var EmberModelFactory
 	 */
-	protected $persistenceManager;
-
-	/**
-	 * @Flow\Inject
-	 * @var \Flowpack\EmberAdapter\Reflection\ReflectionService
-	 */
-	protected $reflectionService;
+	protected $emberModelFactory;
 
 	/**
 	 * @Flow\Inject
 	 * @var ArraySerializer
 	 */
 	protected $emberModelSerializer;
-
-	/**
-	 * @Flow\Inject
-	 * @var AttributeFactory
-	 */
-	protected $attributeFactory;
 
 	/**
 	 * @var array<EmberModelInterface>
@@ -64,6 +50,19 @@ class EmberView extends AbstractView {
 			}
 		} elseif (is_object($value)) {
 			$this->transformObject($value);
+		}
+	}
+
+	/**
+	 * Traverses the given object structure in order to transform it into models.
+	 *
+	 * @param object $object Object to traverse
+	 */
+	protected function transformObject($object) {
+		$model = $this->emberModelFactory->create($object);
+
+		if ($model !== NULL) {
+			$this->models[] = $model;
 		}
 	}
 
@@ -100,40 +99,6 @@ class EmberView extends AbstractView {
 		}
 
 		return $convertedModels;
-	}
-
-	/**
-	 * Traverses the given object structure in order to transform it into models.
-	 *
-	 * @param object $object Object to traverse
-	 */
-	protected function transformObject($object) {
-		$className = $this->reflectionService->getClassNameByObject($object);
-
-		if ($this->reflectionService->isClassEmberModel($className) === FALSE) {
-			return;
-		}
-
-		$modelName = $this->reflectionService->getModelNameByObject($object);
-		$modelIdentifier = $this->persistenceManager->getIdentifierByObject($object);
-
-		$model = new GenericEmberModel($modelName, $modelIdentifier);
-
-		foreach ($this->reflectionService->getModelPropertyNames($className) as $propertyName) {
-			$attributeName = $this->reflectionService->getModelAttributeName($className, $propertyName);
-			$attributeType = $this->reflectionService->getModelAttributeType($className, $propertyName);
-			$attributeValue = ObjectAccess::getProperty($object, $propertyName, TRUE);
-
-			if ($this->reflectionService->isRelation($className, $propertyName) === FALSE) {
-				$attribute = $this->attributeFactory->createByType($attributeType, $attributeName, $attributeValue);
-				$model->addAttribute($attribute);
-			} else {
-				// todo: convert relations to ids
-				// todo: can call itself basically
-			}
-		}
-
-		$this->models[] = $model;
 	}
 
 }

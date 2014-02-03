@@ -18,12 +18,22 @@ abstract class AbstractAttribute {
 	protected $value;
 
 	/**
+	 * @var array
+	 */
+	protected $options = array();
+
+	/**
 	 * @param string $name
 	 * @param mixed $value
+	 * @param array $options
 	 */
-	public function __construct($name, $value) {
+	public function __construct($name, $value, $options = array()) {
 		$this->name = $name;
 		$this->value = $value;
+
+		if ($options !== array()) {
+			$this->options = $options;
+		}
 	}
 
 	/**
@@ -38,6 +48,13 @@ abstract class AbstractAttribute {
 	 */
 	public function getValue() {
 		return $this->value;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getOptions() {
+		return $this->options;
 	}
 
 }

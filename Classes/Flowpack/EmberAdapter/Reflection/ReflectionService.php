@@ -82,12 +82,7 @@ class ReflectionService {
 	 * @throws \InvalidArgumentException
 	 */
 	public function getModelAttributeName($className, $propertyName) {
-		/** @var Attribute $propertyAnnotation */
-		$propertyAnnotation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_ATTRIBUTE);
-
-		if ($propertyAnnotation === NULL) {
-			throw new \InvalidArgumentException('Given property is not annotated as ember attribute.', 1390666390);
-		}
+		$propertyAnnotation = $this->getAttributeAnnotation($className, $propertyName);
 
 		if ($propertyAnnotation->name !== NULL) {
 			return $propertyAnnotation->name;
@@ -103,14 +98,35 @@ class ReflectionService {
 	 * @throws \InvalidArgumentException
 	 */
 	public function getModelAttributeType($className, $propertyName) {
+		$propertyAnnotation = $this->getAttributeAnnotation($className, $propertyName);
+		return $propertyAnnotation->type;
+	}
+
+	/**
+	 * @param string $className
+	 * @param string $propertyName
+	 * @return array
+	 * @throws \InvalidArgumentException
+	 */
+	public function getModelAttributeOptions($className, $propertyName) {
+		$propertyAnnotation = $this->getAttributeAnnotation($className, $propertyName);
+		return $propertyAnnotation->options;
+	}
+
+	/**
+	 * @param string $className
+	 * @param string $propertyName
+	 * @return Attribute
+	 * @throws \InvalidArgumentException
+	 */
+	protected function getAttributeAnnotation($className, $propertyName) {
 		/** @var Attribute $propertyAnnotation */
 		$propertyAnnotation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_ATTRIBUTE);
 
 		if ($propertyAnnotation === NULL) {
 			throw new \InvalidArgumentException('Given property is not annotated as ember attribute.', 1390666390);
 		}
-
-		return $propertyAnnotation->type;
+		return $propertyAnnotation;
 	}
 
 	/**

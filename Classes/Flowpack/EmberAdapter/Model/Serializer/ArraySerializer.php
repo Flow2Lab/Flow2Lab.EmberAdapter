@@ -80,7 +80,7 @@ class ArraySerializer {
 	 */
 	protected function serializeAttribute(AbstractAttribute $attribute) {
 		$transform = $this->findTransformForAttribute($attribute);
-		return $transform->serialize($attribute->getValue());
+		return $transform->serialize($attribute->getValue(), $attribute->getOptions());
 	}
 
 	/**

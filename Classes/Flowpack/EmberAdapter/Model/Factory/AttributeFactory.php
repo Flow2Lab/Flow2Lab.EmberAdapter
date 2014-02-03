@@ -21,21 +21,22 @@ class AttributeFactory {
 	 * @param string $attributeType
 	 * @param string $attributeName
 	 * @param string $attributeValue
+	 * @param array $attributeOptions
 	 * @return AbstractAttribute
 	 */
-	public function createByType($attributeType, $attributeName, $attributeValue = '') {
+	public function createByType($attributeType, $attributeName, $attributeValue = '', $attributeOptions = array()) {
 		switch ($attributeType) {
 			case 'boolean':
-				return new Boolean($attributeName, $attributeValue);
+				return new Boolean($attributeName, $attributeValue, $attributeOptions);
 			case 'date':
-				return new Date($attributeName, $attributeValue);
+				return new Date($attributeName, $attributeValue, $attributeOptions);
 			case 'number':
-				return new Number($attributeName, $attributeValue);
+				return new Number($attributeName, $attributeValue, $attributeOptions);
 			case 'raw':
-				return new Raw($attributeName, $attributeValue);
+				return new Raw($attributeName, $attributeValue, $attributeOptions);
 			case 'string':
 			default:
-				return new String($attributeName, $attributeValue);
+				return new String($attributeName, $attributeValue, $attributeOptions);
 		}
 	}
 

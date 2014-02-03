@@ -24,6 +24,13 @@ final class Attribute {
 	public $type = 'string';
 
 	/**
+	 * Options passed to the attribute instances.
+	 *
+	 * @var array
+	 */
+	public $options = array();
+
+	/**
 	 * @param array $values
 	 */
 	public function __construct(array $values) {
@@ -33,6 +40,14 @@ final class Attribute {
 
 		if (isset($values['type'])) {
 			$this->type = $values['type'];
+		}
+
+		if (isset($values['options'])) {
+			if (is_array($values['options'])) {
+				$this->options = $values['options'];
+			} else {
+				$this->options = array($values['options']);
+			}
 		}
 	}
 
