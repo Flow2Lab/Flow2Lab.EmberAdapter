@@ -1,8 +1,10 @@
 <?php
 namespace Flowpack\EmberAdapter\Model\Factory;
 
+use Flowpack\EmberAdapter\Annotations\AbstractRelationAttribute;
 use Flowpack\EmberAdapter\Model\EmberModelInterface;
 use Flowpack\EmberAdapter\Model\GenericEmberModel;
+use Flowpack\EmberAdapter\Model\Relation\BelongsTo;
 use Flowpack\EmberAdapter\Reflection\ReflectionService;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Persistence\PersistenceManagerInterface;
@@ -57,8 +59,13 @@ class EmberModelFactory {
 				$attribute = $this->attributeFactory->createByType($attributeType, $attributeName, $attributeValue, $attributeOptions);
 				$model->addAttribute($attribute);
 			} else {
-				// todo: convert relations to ids
-				// todo: can call itself basically
+				$relation = $this->reflectionService->getRelation($className, $propertyName);
+
+				if ($relation->type === AbstractRelationAttribute::RELATION_BELONGS_TO && $relation->sideload === TRUE) {
+					$otherModel = $this->create($attributeValue);
+
+				}
+				// todo: hasMany
 			}
 		}
 

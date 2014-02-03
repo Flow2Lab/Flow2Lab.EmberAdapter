@@ -3,18 +3,13 @@ namespace Flowpack\EmberAdapter\Annotations;
 
 abstract class AbstractRelationAttribute {
 
-	/**
-	 * Attribute name in the ember model. If left empty, the class property name will be used.
-	 *
-	 * @var string
-	 */
-	public $name;
+	const RELATION_BELONGS_TO = 'belongsTo';
+	const RELATION_HAS_MANY = 'hasMany';
 
 	/**
-	 * Name of the model this attribute belongs to.
+	 * Name of the model this attribute relates to.
 	 *
 	 * @var string
-	 * @todo Needs a correct description
 	 */
 	public $model;
 
@@ -37,15 +32,13 @@ abstract class AbstractRelationAttribute {
 	 * @throws \InvalidArgumentException
 	 */
 	public function __construct(array $values) {
-		if (isset($values['name']) || isset($values['value'])) {
-			$this->name = isset($values['name']) ? $values['name'] : $values['value'];
-		}
-
 		if (!isset($values['model']) && !isset($values['value'])) {
-			throw new \InvalidArgumentException('The hasMany annotation requires a model name.');
+			throw new \InvalidArgumentException('The relation annotation requires a model name.');
 		}
 
-		$this->model = isset($values['model']) ? $values['model'] : $values['value'];
+		if (isset($values['model']) || isset($values['value'])) {
+			$this->model = isset($values['model']) ? $values['model'] : $values['value'];
+		}
 
 		if (isset($values['sideload'])) {
 			$this->sideload = (boolean) $values['sideload'];

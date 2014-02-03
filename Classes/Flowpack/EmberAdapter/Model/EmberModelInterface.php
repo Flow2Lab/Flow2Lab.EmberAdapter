@@ -24,4 +24,11 @@ interface EmberModelInterface {
 	 */
 	public function getAttributes();
 
+	/**
+	 * Returns the relations to other models.
+	 *
+	 * @return RelationCollection
+	 */
+	public function getRelations();
+
 }

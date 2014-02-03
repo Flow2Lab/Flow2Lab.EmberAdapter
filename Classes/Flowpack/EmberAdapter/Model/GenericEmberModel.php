@@ -2,6 +2,7 @@
 namespace Flowpack\EmberAdapter\Model;
 
 use Flowpack\EmberAdapter\Model\Attribute\AbstractAttribute;
+use Flowpack\EmberAdapter\Model\Relation\AbstractRelation;
 
 class GenericEmberModel implements EmberModelInterface {
 
@@ -19,6 +20,11 @@ class GenericEmberModel implements EmberModelInterface {
 	 * @var AttributeCollection
 	 */
 	protected $attributes;
+
+	/**
+	 * @var RelationCollection
+	 */
+	protected $relations;
 
 	/**
 	 * @param string $name
@@ -50,6 +56,20 @@ class GenericEmberModel implements EmberModelInterface {
 	}
 
 	/**
+	 * @param AbstractRelation $relation
+	 */
+	public function addRelation(AbstractRelation $relation) {
+		$this->relations->attach($relation);
+	}
+
+	/**
+	 * @param AbstractRelation $relation
+	 */
+	public function removeRelation(AbstractRelation $relation) {
+		$this->relations->detach($relation);
+	}
+
+	/**
 	 * Must return the models name in singular.
 	 *
 	 * @return string
@@ -74,6 +94,15 @@ class GenericEmberModel implements EmberModelInterface {
 	 */
 	public function getAttributes() {
 		return $this->attributes;
+	}
+
+	/**
+	 * Returns the relations to other models.
+	 *
+	 * @return RelationCollection
+	 */
+	public function getRelations() {
+		return $this->relations;
 	}
 
 }

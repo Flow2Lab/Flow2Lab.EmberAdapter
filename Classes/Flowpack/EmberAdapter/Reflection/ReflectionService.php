@@ -1,6 +1,7 @@
 <?php
 namespace Flowpack\EmberAdapter\Reflection;
 
+use Flowpack\EmberAdapter\Annotations\AbstractRelationAttribute;
 use Flowpack\EmberAdapter\Annotations\Attribute;
 use Flowpack\EmberAdapter\Annotations\Model;
 use TYPO3\Flow\Annotations as Flow;
@@ -139,6 +140,19 @@ class ReflectionService {
 			$this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_BELONGS_TO)
 			|| $this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_HAS_MANY)
 		);
+	}
+
+	/**
+	 * @param string $className
+	 * @param string $propertyName
+	 * @return AbstractRelationAttribute
+	 */
+	public function getRelation($className, $propertyName) {
+		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_BELONGS_TO)) {
+			return $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_BELONGS_TO);
+		} else {
+			return $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_HAS_MANY);
+		}
 	}
 
 }
