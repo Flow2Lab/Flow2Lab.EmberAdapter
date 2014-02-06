@@ -6,22 +6,44 @@ use Flowpack\EmberAdapter\Model\EmberModelInterface;
 class BelongsTo extends AbstractRelation {
 
 	/**
+	 * The identifier of the related model.
+	 *
+	 * @var string
+	 */
+	protected $id;
+
+	/**
 	 * @var EmberModelInterface
 	 */
-	protected $otherModel;
+	protected $relatedModel;
+
+	/**
+	 * @param string $id
+	 */
+	public function setId($id) {
+		$this->id = $id;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getId() {
+		return $this->id;
+	}
 
 	/**
 	 * @param \Flowpack\EmberAdapter\Model\EmberModelInterface $otherModel
 	 */
-	public function setOtherModel($otherModel) {
-		$this->otherModel = $otherModel;
+	public function setRelatedModel($otherModel) {
+		$this->relatedModel = $otherModel;
+		$this->id = $otherModel->getId();
 	}
 
 	/**
 	 * @return \Flowpack\EmberAdapter\Model\EmberModelInterface
 	 */
-	public function getOtherModel() {
-		return $this->otherModel;
+	public function getRelatedModel() {
+		return $this->relatedModel;
 	}
 
 }

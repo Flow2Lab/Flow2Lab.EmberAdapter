@@ -15,15 +15,15 @@ abstract class AbstractRelation {
 	 *
 	 * @var boolean
 	 */
-	protected $sideload;
+	protected $sideloaded;
 
 	/**
 	 * @param string $name
-	 * @param boolean $sideload
+	 * @param boolean $sideloaded
 	 */
-	public function __construct($name, $sideload = FALSE) {
+	public function __construct($name, $sideloaded = FALSE) {
 		$this->name = $name;
-		$this->sideload = $sideload;
+		$this->sideloaded = $sideloaded;
 	}
 
 	/**
@@ -36,8 +36,8 @@ abstract class AbstractRelation {
 	/**
 	 * @return boolean
 	 */
-	public function getSideload() {
-		return $this->sideload;
+	public function isSideloaded() {
+		return $this->sideloaded;
 	}
 
 }

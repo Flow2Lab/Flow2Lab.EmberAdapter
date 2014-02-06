@@ -5,6 +5,7 @@ use Flowpack\EmberAdapter\Annotations\AbstractRelationAttribute;
 use Flowpack\EmberAdapter\Annotations\Attribute;
 use Flowpack\EmberAdapter\Annotations\Model;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\TypeHandling;
 
 /**
  * Mind the naming!
@@ -145,14 +146,22 @@ class ReflectionService {
 	/**
 	 * @param string $className
 	 * @param string $propertyName
-	 * @return AbstractRelationAttribute
+	 * @return NULL|AbstractRelationAttribute
 	 */
 	public function getRelation($className, $propertyName) {
-		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_BELONGS_TO)) {
-			return $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_BELONGS_TO);
-		} else {
-			return $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_HAS_MANY);
+		if ($this->isRelation($className, $propertyName) === FALSE) {
+			return NULL;
 		}
+
+		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_BELONGS_TO)) {
+			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_BELONGS_TO);
+		} else {
+			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_HAS_MANY);
+		}
+
+		// todo: implement detection of value objects
+
+		return $relation;
 	}
 
 }

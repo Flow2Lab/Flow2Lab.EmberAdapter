@@ -3,6 +3,8 @@ namespace Flowpack\EmberAdapter\Mvc\View;
 
 use Flowpack\EmberAdapter\Model\EmberModelInterface;
 use Flowpack\EmberAdapter\Model\Factory\EmberModelFactory;
+use Flowpack\EmberAdapter\Model\Relation\AbstractRelation;
+use Flowpack\EmberAdapter\Model\Relation\BelongsTo;
 use Flowpack\EmberAdapter\Model\Serializer\ArraySerializer;
 use Flowpack\EmberAdapter\Utility\EmberInflector;
 use TYPO3\Flow\Annotations as Flow;
@@ -33,7 +35,7 @@ class EmberView extends AbstractView {
 	 * @return string The JSON encoded variables
 	 */
 	public function render() {
-		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
+		//$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
 		$this->transformValue($this->variables);
 
 		$renderedModels = $this->renderArray();
@@ -62,7 +64,27 @@ class EmberView extends AbstractView {
 		$model = $this->emberModelFactory->create($object);
 
 		if ($model !== NULL) {
-			$this->models[] = $model;
+			$this->addModelAndRelations($model);
+		}
+	}
+
+	/**
+	 * @param EmberModelInterface $emberModel
+	 */
+	protected function addModelAndRelations(EmberModelInterface $emberModel) {
+		$this->models[] = $emberModel;
+		foreach ($emberModel->getRelations() as $relation) {
+			// todo: ugglyyyyy...
+			/** @var AbstractRelation $relation */
+			if ($relation->isSideloaded()) {
+				if ($relation instanceof BelongsTo && $relation->getRelatedModel() !== NULL) {
+					$this->addModelAndRelations($relation->getRelatedModel());
+				} else {
+					foreach ($relation->getRelatedModels() as $relatedModel) {
+						$this->addModelAndRelations($relatedModel);
+					}
+				}
+			}
 		}
 	}
 

@@ -39,6 +39,7 @@ class GenericEmberModel implements EmberModelInterface {
 		$this->name = $name;
 		$this->id = $id;
 		$this->attributes = new AttributeCollection();
+		$this->relations = new RelationCollection();
 	}
 
 	/**

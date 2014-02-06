@@ -3,6 +3,8 @@ namespace Flowpack\EmberAdapter\Model\Serializer;
 
 use Flowpack\EmberAdapter\Model\Attribute\AbstractAttribute;
 use Flowpack\EmberAdapter\Model\EmberModelInterface;
+use Flowpack\EmberAdapter\Model\Relation\AbstractRelation;
+use Flowpack\EmberAdapter\Model\Relation\BelongsTo;
 use Flowpack\EmberAdapter\Model\Transform\Exception\DuplicateTransformException;
 use Flowpack\EmberAdapter\Model\Transform\Exception\MissingTransformException;
 use Flowpack\EmberAdapter\Model\Transform\TransformInterface;
@@ -71,6 +73,11 @@ class ArraySerializer {
 			$serializedModel[$attribute->getName()] = $this->serializeAttribute($attribute);
 		}
 
+		foreach ($model->getRelations() as $relation) {
+			/** @var AbstractRelation $relation */
+			$serializedModel[$relation->getName()] = $this->serializeRelation($relation);
+		}
+
 		return $serializedModel;
 	}
 
@@ -102,6 +109,14 @@ class ArraySerializer {
 
 		$transformWithHighestPriority = array_shift($availableTransforms);
 		return $transformWithHighestPriority;
+	}
+
+	protected function serializeRelation(AbstractRelation $relation) {
+		if ($relation instanceof BelongsTo) {
+			return $relation->getId();
+		} else {
+			return $relation->getIds();
+		}
 	}
 
 }
