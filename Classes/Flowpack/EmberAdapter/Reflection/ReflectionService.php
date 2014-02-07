@@ -159,7 +159,18 @@ class ReflectionService {
 			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_HAS_MANY);
 		}
 
-		// todo: implement detection of value objects
+		// Parse the properties type and check if it is a value objects.
+		// Value objects have to be sideloaded since it's impossible to provide a REST resource for them.
+		$tags = $this->reflectionService->getPropertyTagValues($className, $propertyName, 'var');
+		$tag = array_shift($tags);
+		if ($tag !== NULL) {
+			$parsedType = TypeHandling::parseType($tag);
+			$propertyType = ($parsedType['elementType']) ?: $parsedType['type'];
+
+			if ($this->reflectionService->isClassAnnotatedWith($propertyType, 'TYPO3\\Flow\\Annotations\\ValueObject')) {
+				$relation->sideload = TRUE;
+			}
+		}
 
 		return $relation;
 	}

@@ -28,6 +28,13 @@ abstract class AbstractRelationAttribute {
 	public $inverse;
 
 	/**
+	 * Type of the relation. Has to be set by the inheriting classes.
+	 *
+	 * @var string
+	 */
+	public $type;
+
+	/**
 	 * @param array $values
 	 * @throws \InvalidArgumentException
 	 */

@@ -1,9 +1,11 @@
 <?php
 namespace Flowpack\EmberAdapter\Model\Factory;
 
-use Flowpack\EmberAdapter\Annotations\AbstractRelationAttribute;
+use Doctrine\Common\Collections\Collection;
+use Flowpack\EmberAdapter\Annotations as Ember;
 use Flowpack\EmberAdapter\Model\EmberModelInterface;
 use Flowpack\EmberAdapter\Model\GenericEmberModel;
+use Flowpack\EmberAdapter\Model\Relation\AbstractRelation;
 use Flowpack\EmberAdapter\Model\Relation\BelongsTo;
 use Flowpack\EmberAdapter\Model\Relation\HasMany;
 use Flowpack\EmberAdapter\Reflection\ReflectionService;
@@ -35,7 +37,8 @@ class EmberModelFactory {
 	protected $attributeFactory;
 
 	/**
-	 * @todo: refactor this method..
+	 * todo: find a way to not recursively load bidirectional relations.
+	 *
 	 * @param object $domainModel
 	 * @return NULL|EmberModelInterface
 	 */
@@ -63,47 +66,78 @@ class EmberModelFactory {
 					$attribute = $this->attributeFactory->createByType($attributeType, $attributeName, $attributeValue, $attributeOptions);
 					$model->addAttribute($attribute);
 				} else {
-					$relation = $this->reflectionService->getRelation($className, $propertyName);
-
-					// todo: check NULL values
-					if ($relation->type === AbstractRelationAttribute::RELATION_BELONGS_TO) {
-						$belongsToRelation = new BelongsTo($attributeName, $relation->sideload);
-
-						if ($relation->sideload === TRUE) {
-							$relatedModel = $this->create($attributeValue);
-							$belongsToRelation->setRelatedModel($relatedModel);
-						} else {
-							$relatedModelsIdentifier = $this->persistenceManager->getIdentifierByObject($attributeValue);
-							$belongsToRelation->setId($relatedModelsIdentifier);
-						}
-
-						$model->addRelation($belongsToRelation);
-					} else {
-						$hasManyRelation = new HasMany($attributeName, $relation->sideload);
-
-						// todo: check if it is a collection thingy
-						if ($relation->sideload === TRUE) {
-							$relatedModels = array();
-							foreach ($attributeValue as $relatedDomainModel) {
-								$relatedModel = $this->create($relatedDomainModel);
-								$relatedModels[] = $relatedModel;
-							}
-							$hasManyRelation->setRelatedModels($relatedModels);
-						} else {
-							$relatedModelIdentifiers = array();
-							foreach ($attributeValue as $relatedDomainModel) {
-								$relatedModelIdentifiers[] = $this->persistenceManager->getIdentifierByObject($relatedDomainModel);
-							}
-							$hasManyRelation->setIds($relatedModelIdentifiers);
-						}
-
-						$model->addRelation($hasManyRelation);
+					// Relation attributes can be omitted if they are NULL or contain no items
+					if ($attributeValue !== NULL && (!$attributeValue instanceof Collection || $attributeValue->count() > 0)) {
+						$relationAnnotation = $this->reflectionService->getRelation($className, $propertyName);
+						$relation = $this->handleRelation($relationAnnotation, $attributeName, $attributeValue, $model);
+						$model->addRelation($relation);
 					}
 				}
 			}
 		}
 
 		return $model;
+	}
+
+	/**
+	 * @param Ember\AbstractRelationAttribute $relation
+	 * @param string $attributeName
+	 * @param mixed $attributeValue
+	 * @return AbstractRelation
+	 */
+	protected function handleRelation(Ember\AbstractRelationAttribute $relation, $attributeName, $attributeValue) {
+		if ($relation->type === Ember\AbstractRelationAttribute::RELATION_BELONGS_TO) {
+			return $this->handleBelongsToRelation($relation, $attributeName, $attributeValue);
+		} else {
+			return $this->handleHasManyRelation($relation, $attributeName, $attributeValue);
+		}
+	}
+
+	/**
+	 * @param Ember\AbstractRelationAttribute $relation
+	 * @param string $attributeName
+	 * @param mixed $attributeValue
+	 * @return AbstractRelation
+	 */
+	protected function handleBelongsToRelation($relation, $attributeName, $attributeValue) {
+		$belongsToRelation = new BelongsTo($attributeName, $relation->sideload);
+
+		if ($relation->sideload === TRUE) {
+			$relatedModel = $this->create($attributeValue);
+			$belongsToRelation->setRelatedModel($relatedModel);
+		} else {
+			$relatedModelsIdentifier = $this->persistenceManager->getIdentifierByObject($attributeValue);
+			$belongsToRelation->setId($relatedModelsIdentifier);
+		}
+
+		return $belongsToRelation;
+	}
+
+	/**
+	 * @param Ember\AbstractRelationAttribute $relation
+	 * @param $attributeName
+	 * @param $attributeValue
+	 * @return AbstractRelation
+	 */
+	protected function handleHasManyRelation($relation, $attributeName, $attributeValue) {
+		$hasManyRelation = new HasMany($attributeName, $relation->sideload);
+
+		if ($relation->sideload === TRUE) {
+			$relatedModels = array();
+			foreach ($attributeValue as $relatedDomainModel) {
+				$relatedModel = $this->create($relatedDomainModel);
+				$relatedModels[] = $relatedModel;
+			}
+			$hasManyRelation->setRelatedModels($relatedModels);
+		} else {
+			$relatedModelIdentifiers = array();
+			foreach ($attributeValue as $relatedDomainModel) {
+				$relatedModelIdentifiers[] = $this->persistenceManager->getIdentifierByObject($relatedDomainModel);
+			}
+			$hasManyRelation->setIds($relatedModelIdentifiers);
+		}
+
+		return $hasManyRelation;
 	}
 
 }
