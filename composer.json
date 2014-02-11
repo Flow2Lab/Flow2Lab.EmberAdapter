@@ -6,7 +6,8 @@
     "minimum-stability": "dev",
     "authors":[
         {
-            "name":"Philipp Maier"
+            "name":"Philipp Maier",
+	        "name":"Sebastiaan van Parijs"
         }
     ],
     "require":{
