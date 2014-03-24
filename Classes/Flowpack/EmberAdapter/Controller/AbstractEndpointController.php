@@ -1,22 +1,13 @@
 <?php
 namespace Flowpack\EmberAdapter\Controller;
 
-/*                                                                        *
- * This script belongs to the Flow package "Radmiraal.Emberjs"            *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU Lesser General Public License, either version 3   *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
-
 use Flowpack\EmberAdapter\Utility\EmberDataUtility;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Mvc\Controller\ActionController;
+use TYPO3\Flow\Object\ObjectManagerInterface;
+use TYPO3\Flow\Persistence\PersistenceManagerInterface;
 
-/**
- */
-abstract class AbstractEndpointController extends \TYPO3\Flow\Mvc\Controller\ActionController {
+abstract class AbstractEndpointController extends ActionController {
 
 	/**
 	 * @var string
@@ -35,12 +26,12 @@ abstract class AbstractEndpointController extends \TYPO3\Flow\Mvc\Controller\Act
 
 	/**
 	 * @Flow\Inject
-	 * @var \TYPO3\Flow\Object\ObjectManagerInterface
+	 * @var ObjectManagerInterface
 	 */
 	protected $objectManager;
 
 	/**
-	 * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface
+	 * @var PersistenceManagerInterface
 	 * @Flow\Inject
 	 */
 	protected $persistenceManager;
@@ -63,7 +54,7 @@ abstract class AbstractEndpointController extends \TYPO3\Flow\Mvc\Controller\Act
 			$this->throwStatus(500, NULL, 'No modelName configuration found in request.');
 		}
 
-			// Used for customized controllers
+		// Used for customized controllers
 		if (!$this->request->hasArgument('modelName')) {
 			$this->request->setArgument('modelName', $className = EmberDataUtility::camelizeClassName($this->modelName));
 		}
@@ -159,5 +150,3 @@ abstract class AbstractEndpointController extends \TYPO3\Flow\Mvc\Controller\Act
 	}
 
 }
-
-?>

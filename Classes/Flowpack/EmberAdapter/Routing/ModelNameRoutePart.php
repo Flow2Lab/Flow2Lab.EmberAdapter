@@ -3,14 +3,14 @@ namespace Flowpack\EmberAdapter\Routing;
 
 use Flowpack\EmberAdapter\Utility\EmberDataUtility;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Mvc\Routing\DynamicRoutePart;
+use TYPO3\Flow\Object\ObjectManagerInterface;
 
-/**
- */
-class ModelNameRoutePart extends \TYPO3\Flow\Mvc\Routing\DynamicRoutePart {
+class ModelNameRoutePart extends DynamicRoutePart {
 
 	/**
 	 * @Flow\Inject
-	 * @var \TYPO3\Flow\Object\ObjectManagerInterface
+	 * @var ObjectManagerInterface
 	 */
 	protected $objectManager;
 
@@ -35,5 +35,3 @@ class ModelNameRoutePart extends \TYPO3\Flow\Mvc\Routing\DynamicRoutePart {
 	}
 
 }
-
-?>
