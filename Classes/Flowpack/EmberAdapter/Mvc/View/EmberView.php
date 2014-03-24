@@ -5,6 +5,8 @@ use Flowpack\EmberAdapter\Model\EmberModelInterface;
 use Flowpack\EmberAdapter\Model\Factory\EmberModelFactory;
 use Flowpack\EmberAdapter\Model\Relation\AbstractRelation;
 use Flowpack\EmberAdapter\Model\Relation\BelongsTo;
+use Flowpack\EmberAdapter\Model\Relation\HasMany;
+use Flowpack\EmberAdapter\Model\RelationCollection;
 use Flowpack\EmberAdapter\Model\Serializer\ArraySerializer;
 use Flowpack\EmberAdapter\Utility\EmberInflector;
 use TYPO3\Flow\Annotations as Flow;
@@ -32,10 +34,17 @@ class EmberView extends AbstractView {
 	protected $models = array();
 
 	/**
+	 * Contains an array of already loaded models
+	 *
+	 * @var array<string>
+	 */
+	protected $addedModels = array();
+
+	/**
 	 * @return string The JSON encoded variables
 	 */
 	public function render() {
-		//$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
+		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
 		$this->transformValue($this->variables);
 
 		$renderedModels = $this->renderArray();
@@ -50,7 +59,7 @@ class EmberView extends AbstractView {
 			foreach ($value as $element) {
 				$this->transformValue($element);
 			}
-		} elseif (is_object($value)) {
+		} else if (is_object($value)) {
 			$this->transformObject($value);
 		}
 	}
@@ -64,24 +73,58 @@ class EmberView extends AbstractView {
 		$model = $this->emberModelFactory->create($object);
 
 		if ($model !== NULL) {
-			$this->addModelAndRelations($model);
+			$this->addModel($model);
 		}
 	}
 
 	/**
 	 * @param EmberModelInterface $emberModel
 	 */
-	protected function addModelAndRelations(EmberModelInterface $emberModel) {
+	protected function addModel(EmberModelInterface $emberModel = NULL) {
+		if ($emberModel === NULL || $this->modelIsAlreadyAdded($emberModel) === TRUE) {
+			return;
+		}
+
 		$this->models[] = $emberModel;
-		foreach ($emberModel->getRelations() as $relation) {
-			// todo: ugglyyyyy...
-			/** @var AbstractRelation $relation */
+		$this->markModelAsAdded($emberModel);
+		$this->addRelations($emberModel->getRelations());
+	}
+
+	/**
+	 * @param EmberModelInterface $emberModel
+	 * @return boolean
+	 */
+	protected function modelIsAlreadyAdded(EmberModelInterface $emberModel) {
+		if (array_key_exists($emberModel->getName(), $this->addedModels) === FALSE) {
+			return FALSE;
+		} else {
+			return in_array($emberModel->getId(), $this->addedModels[$emberModel->getName()]);
+		}
+	}
+
+	/**
+	 * @param EmberModelInterface $emberModel
+	 */
+	protected function markModelAsAdded(EmberModelInterface $emberModel) {
+		if (array_key_exists($emberModel->getName(), $this->addedModels) === FALSE) {
+			$this->addedModels[$emberModel->getName()] = array();
+		}
+
+		$this->addedModels[$emberModel->getName()][] = $emberModel->getId();
+	}
+
+	/**
+	 * @param RelationCollection $relations
+	 */
+	protected function addRelations(RelationCollection $relations) {
+		/** @var BelongsTo|HasMany $relation */
+		foreach ($relations as $relation) {
 			if ($relation->isSideloaded()) {
-				if ($relation instanceof BelongsTo && $relation->getRelatedModel() !== NULL) {
-					$this->addModelAndRelations($relation->getRelatedModel());
+				if ($relation instanceof BelongsTo) {
+					$this->addModel($relation->getRelatedModel());
 				} else {
 					foreach ($relation->getRelatedModels() as $relatedModel) {
-						$this->addModelAndRelations($relatedModel);
+						$this->addModel($relatedModel);
 					}
 				}
 			}
