@@ -5,6 +5,8 @@ use Flowpack\EmberAdapter\Model\Attribute\AbstractAttribute;
 use Flowpack\EmberAdapter\Model\EmberModelInterface;
 use Flowpack\EmberAdapter\Model\Relation\AbstractRelation;
 use Flowpack\EmberAdapter\Model\Relation\BelongsTo;
+use Flowpack\EmberAdapter\Model\Relation\HasMany;
+use Flowpack\EmberAdapter\Model\Serializer\Exception\UnknownRelationException;
 use Flowpack\EmberAdapter\Model\Transform\Exception\DuplicateTransformException;
 use Flowpack\EmberAdapter\Model\Transform\Exception\MissingTransformException;
 use Flowpack\EmberAdapter\Model\Transform\TransformInterface;
@@ -111,12 +113,19 @@ class ArraySerializer {
 		return $transformWithHighestPriority;
 	}
 
+	/**
+	 * @param AbstractRelation $relation
+	 * @return array|string
+	 * @throws Exception\UnknownRelationException
+	 */
 	protected function serializeRelation(AbstractRelation $relation) {
 		if ($relation instanceof BelongsTo) {
 			return $relation->getId();
-		} else {
+		} else if ($relation instanceof HasMany) {
 			return $relation->getIds();
 		}
+
+		throw new UnknownRelationException('Currently only BelongsTo and HasMany relations are supported.', 1395657631);
 	}
 
 }

@@ -69,7 +69,7 @@ class EmberModelFactory {
 					// Relation attributes can be omitted if they are NULL or contain no items
 					if ($attributeValue !== NULL && (!$attributeValue instanceof Collection || $attributeValue->count() > 0)) {
 						$relationAnnotation = $this->reflectionService->getRelation($className, $propertyName);
-						$relation = $this->handleRelation($relationAnnotation, $attributeName, $attributeValue, $model);
+						$relation = $this->createRelation($relationAnnotation, $attributeName, $attributeValue, $model);
 						$model->addRelation($relation);
 					}
 				}
@@ -85,11 +85,11 @@ class EmberModelFactory {
 	 * @param mixed $attributeValue
 	 * @return AbstractRelation
 	 */
-	protected function handleRelation(Ember\AbstractRelationAttribute $relation, $attributeName, $attributeValue) {
+	protected function createRelation(Ember\AbstractRelationAttribute $relation, $attributeName, $attributeValue) {
 		if ($relation->type === Ember\AbstractRelationAttribute::RELATION_BELONGS_TO) {
-			return $this->handleBelongsToRelation($relation, $attributeName, $attributeValue);
+			return $this->createBelongsToRelation($relation, $attributeName, $attributeValue);
 		} else {
-			return $this->handleHasManyRelation($relation, $attributeName, $attributeValue);
+			return $this->createHasManyRelation($relation, $attributeName, $attributeValue);
 		}
 	}
 
@@ -99,7 +99,7 @@ class EmberModelFactory {
 	 * @param mixed $attributeValue
 	 * @return AbstractRelation
 	 */
-	protected function handleBelongsToRelation($relation, $attributeName, $attributeValue) {
+	protected function createBelongsToRelation($relation, $attributeName, $attributeValue) {
 		$belongsToRelation = new BelongsTo($attributeName, $relation->sideload);
 
 		if ($relation->sideload === TRUE) {
@@ -119,7 +119,7 @@ class EmberModelFactory {
 	 * @param $attributeValue
 	 * @return AbstractRelation
 	 */
-	protected function handleHasManyRelation($relation, $attributeName, $attributeValue) {
+	protected function createHasManyRelation($relation, $attributeName, $attributeValue) {
 		$hasManyRelation = new HasMany($attributeName, $relation->sideload);
 
 		if ($relation->sideload === TRUE) {

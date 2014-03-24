@@ -1,6 +1,9 @@
 <?php
 namespace Flowpack\EmberAdapter\Model;
 
+use Flowpack\EmberAdapter\Model\Attribute\AbstractAttribute;
+use Flowpack\EmberAdapter\Model\Relation\AbstractRelation;
+
 interface EmberModelInterface {
 
 	/**
@@ -25,10 +28,30 @@ interface EmberModelInterface {
 	public function getAttributes();
 
 	/**
+	 * @param AbstractAttribute $attribute
+	 */
+	public function addAttribute(AbstractAttribute $attribute);
+
+	/**
+	 * @param AbstractAttribute $attribute
+	 */
+	public function removeAttribute(AbstractAttribute $attribute);
+
+	/**
 	 * Returns the relations to other models.
 	 *
 	 * @return RelationCollection
 	 */
 	public function getRelations();
+
+	/**
+	 * @param AbstractRelation $relation
+	 */
+	public function addRelation(AbstractRelation $relation);
+
+	/**
+	 * @param AbstractRelation $relation
+	 */
+	public function removeRelation(AbstractRelation $relation);
 
 }
