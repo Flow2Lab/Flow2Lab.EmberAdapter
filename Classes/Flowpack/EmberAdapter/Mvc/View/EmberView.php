@@ -44,10 +44,18 @@ class EmberView extends AbstractView {
 	 * @return string The JSON encoded variables
 	 */
 	public function render() {
-		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
 		$this->transformValue($this->variables);
-
 		$renderedModels = $this->renderArray();
+		if (empty($renderedModels)) {
+			$modelName = $this->controllerContext->getRequest()->hasArgument('modelName');
+			$emptyObject = new $modelName();
+			if ($emptyObject->getResourceArgumentName() !== '') {
+				$emptyModel = array($emptyObject->getResourceArgumentName() => array());
+				return json_encode((object) $emptyModel);
+			} else {
+				$this->throwStatus(404);
+			}
+		}
 		return json_encode($renderedModels);
 	}
 

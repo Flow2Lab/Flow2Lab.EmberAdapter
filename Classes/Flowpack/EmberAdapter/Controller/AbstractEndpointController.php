@@ -103,6 +103,14 @@ abstract class AbstractEndpointController extends ActionController {
 		if ($this->request->hasArgument('model')) {
 			$arguments[$this->resourceArgumentName] = array('__identity' => $arguments['model']);
 			$this->arguments->getArgument($this->resourceArgumentName)->setDataType($this->modelName);
+
+			// Add properties to arguments
+			if ($this->request->getHttpRequest()->getMethod() === 'PUT') {
+				$this->arguments->getArgument($this->resourceArgumentName)->setDataType($this->modelName);
+				$resourceArgumentName = $this->resourceArgumentName;
+				$arguments[$this->resourceArgumentName] = (array)$this->receivedData->$resourceArgumentName;
+				$arguments[$this->resourceArgumentName]['__identity'] = $arguments['model'];
+			}
 		}
 
 		unset($arguments['modelName']);
@@ -116,6 +124,7 @@ abstract class AbstractEndpointController extends ActionController {
 	 * @return void
 	 */
 	public function initializeCreateAction() {
+		/** @var \TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration $propertyMappingConfiguration */
 		$propertyMappingConfiguration = $this->arguments[$this->resourceArgumentName]->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
@@ -127,6 +136,7 @@ abstract class AbstractEndpointController extends ActionController {
 	 * @return void
 	 */
 	public function initializeUpdateAction() {
+		/** @var \TYPO3\Flow\Mvc\Controller\MvcPropertyMappingConfiguration $propertyMappingConfiguration */
 		$propertyMappingConfiguration = $this->arguments[$this->resourceArgumentName]->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
