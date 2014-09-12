@@ -159,8 +159,16 @@ class EmberView extends AbstractView {
 
 		foreach ($groupedModels as $modelName => $models) {
 			if (count($models) === 1) {
-				$singularModelName = lcfirst($modelName);
-				$convertedModels[$singularModelName] = $this->emberModelSerializer->serialize($models[0]);
+					// Determine the action to give a proper response:
+					// An array of 1 object or 1 object
+				if ($this->controllerContext->getRequest()->getControllerActionName() === 'list') {
+					$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
+					$convertedModels[$pluralizedModelName] = array();
+					$convertedModels[$pluralizedModelName][] = $this->emberModelSerializer->serialize($models[0]);
+				} else {
+					$singularModelName = lcfirst($modelName);
+					$convertedModels[$singularModelName] = $this->emberModelSerializer->serialize($models[0]);
+				}
 			} else {
 				$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
 				$convertedModels[$pluralizedModelName] = array();
