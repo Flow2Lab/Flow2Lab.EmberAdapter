@@ -158,5 +158,4 @@ abstract class AbstractEndpointController extends ActionController {
 		$this->response->setStatus(204);
 		return '';
 	}
-
 }

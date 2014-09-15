@@ -41,31 +41,33 @@ class EmberView extends AbstractView {
 	protected $addedModels = array();
 
 	/**
+	 * Array of converted Models
+	 * @var array
+	 */
+	protected $renderedModels = array();
+
+	/**
 	 * @return string The JSON encoded variables
 	 */
 	public function render() {
+		unset($this->variables['settings']);
+
 		$this->transformValue($this->variables);
-		$renderedModels = $this->renderArray();
-		if (empty($renderedModels)) {
-			$modelName = $this->controllerContext->getRequest()->hasArgument('modelName');
-			$emptyObject = new $modelName();
-			if ($emptyObject->getResourceArgumentName() !== '') {
-				$emptyModel = array($emptyObject->getResourceArgumentName() => array());
-				return json_encode((object) $emptyModel);
-			} else {
-				$this->throwStatus(404);
-			}
-		}
-		return json_encode($renderedModels);
+		$this->renderArray();
+		return json_encode($this->renderedModels);
 	}
 
 	/**
-	 * @param array $value
+	 * @param mixed $value
+	 * @param string $modelName
 	 */
-	protected function transformValue($value) {
+	protected function transformValue($value, $modelName = '') {
 		if (is_array($value) || $value instanceof \ArrayAccess) {
-			foreach ($value as $element) {
-				$this->transformValue($element);
+			if (count($value) === 0) {
+				$this->renderedModels[lcfirst(EmberInflector::pluralize($modelName))] = array();
+			}
+			foreach ($value as $modelKey => $element) {
+				$this->transformValue($element, $modelKey);
 			}
 		} else if (is_object($value)) {
 			$this->transformObject($value);
@@ -79,7 +81,6 @@ class EmberView extends AbstractView {
 	 */
 	protected function transformObject($object) {
 		$model = $this->emberModelFactory->create($object);
-
 		if ($model !== NULL) {
 			$this->addModel($model);
 		}
@@ -142,11 +143,9 @@ class EmberView extends AbstractView {
 	/**
 	 * Groups all ember models by name and converts them to an array.
 	 *
-	 * @return array
 	 */
 	protected function renderArray() {
 		$groupedModels = array();
-		$convertedModels = array();
 
 		/** @var EmberModelInterface $model */
 		foreach ($this->models as $model) {
@@ -163,23 +162,21 @@ class EmberView extends AbstractView {
 					// An array of 1 object or 1 object
 				if ($this->controllerContext->getRequest()->getControllerActionName() === 'list') {
 					$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
-					$convertedModels[$pluralizedModelName] = array();
-					$convertedModels[$pluralizedModelName][] = $this->emberModelSerializer->serialize($models[0]);
+					$this->renderedModels[$pluralizedModelName] = array();
+					$this->renderedModels[$pluralizedModelName][] = $this->emberModelSerializer->serialize($models[0]);
 				} else {
 					$singularModelName = lcfirst($modelName);
-					$convertedModels[$singularModelName] = $this->emberModelSerializer->serialize($models[0]);
+					$this->renderedModels[$singularModelName] = $this->emberModelSerializer->serialize($models[0]);
 				}
 			} else {
 				$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
-				$convertedModels[$pluralizedModelName] = array();
+				$this->renderedModels[$pluralizedModelName] = array();
 
 				foreach ($models as $model) {
-					$convertedModels[$pluralizedModelName][] = $this->emberModelSerializer->serialize($model);
+					$this->renderedModels[$pluralizedModelName][] = $this->emberModelSerializer->serialize($model);
 				}
 			}
 		}
-
-		return $convertedModels;
 	}
 
 }
