@@ -1,5 +1,5 @@
 <?php
-namespace Flow2Lab\EmberAdapter\Reflection;
+namespace Flow2Lab\EmberAdapter\Backend;
 
 use Flow2Lab\EmberAdapter\Annotations\AbstractRelationAttribute;
 use Flow2Lab\EmberAdapter\Annotations\Attribute;
@@ -17,7 +17,7 @@ use TYPO3\Flow\Utility\TypeHandling;
  *
  * @Flow\Scope("singleton")
  */
-class ReflectionService {
+class ReflectionModelConfigurationSource implements ModelConfigurationSourceInterface {
 
 	const ANNOTATION_MODEL = 'Flow2Lab\\EmberAdapter\\Annotations\\Model';
 	const ANNOTATION_ATTRIBUTE = 'Flow2Lab\\EmberAdapter\\Annotations\\Attribute';

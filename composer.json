@@ -6,8 +6,13 @@
 	"minimum-stability": "dev",
 	"authors": [
 		{
-			"name": "Philipp Maier",
-			"name": "Sebastiaan van Parijs"
+			"name": "Philipp Maier"
+		},
+		{
+			"name": "Sebastiaan van Parijs",
+			"email": "svparijs@refactory.it",
+			"homepage": "http://rfy.io",
+			"role": "Developer"
 		}
 	],
 	"require": {

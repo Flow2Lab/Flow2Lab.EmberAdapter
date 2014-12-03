@@ -8,7 +8,9 @@ use Flow2Lab\EmberAdapter\Model\GenericEmberModel;
 use Flow2Lab\EmberAdapter\Model\Relation\AbstractRelation;
 use Flow2Lab\EmberAdapter\Model\Relation\BelongsTo;
 use Flow2Lab\EmberAdapter\Model\Relation\HasMany;
-use Flow2Lab\EmberAdapter\Reflection\ReflectionService;
+use Flow2Lab\EmberAdapter\ConfigurationManager\ModelConfigurationManager;
+use Flow2Lab\EmberAdapter\Utility\EmberDataUtility;
+
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Persistence\PersistenceManagerInterface;
 use TYPO3\Flow\Reflection\ObjectAccess;
@@ -20,9 +22,9 @@ class EmberModelFactory {
 
 	/**
 	 * @Flow\Inject
-	 * @var ReflectionService
+	 * @var ModelConfigurationManager
 	 */
-	protected $reflectionService;
+	protected $modelConfigurationManager;
 
 	/**
 	 * @Flow\Inject
@@ -43,32 +45,31 @@ class EmberModelFactory {
 	 * @return NULL|EmberModelInterface
 	 */
 	public function create($domainModel) {
-		$className = $this->reflectionService->getClassNameByObject($domainModel);
+		$className = $this->modelConfigurationManager->getClassNameByObject($domainModel);
 
-		if ($this->reflectionService->isClassEmberModel($className) === FALSE) {
+		if ($this->modelConfigurationManager->isClassEmberModel($className) === FALSE) {
 			return NULL;
 		}
 
-		$modelName = $this->reflectionService->getModelNameByObject($domainModel);
+		$modelName = $this->modelConfigurationManager->getModelNameByObject($domainModel);
 		$modelIdentifier = $this->persistenceManager->getIdentifierByObject($domainModel);
 
 		// todo: add optional parameter class name to @Ember\Model annotation (must implement EmberModelInterface)
 		$model = new GenericEmberModel($modelName, $modelIdentifier);
 
-		foreach ($this->reflectionService->getModelPropertyNames($className) as $propertyName) {
+		foreach ($this->modelConfigurationManager->getModelPropertyNames($className) as $propertyName) {
 			if (ObjectAccess::isPropertyGettable($domainModel, $propertyName)) {
-				$attributeName = $this->reflectionService->getModelAttributeName($className, $propertyName);
-				$attributeType = $this->reflectionService->getModelAttributeType($className, $propertyName);
+				$attributeName = EmberDataUtility::uncamelize($this->modelConfigurationManager->getModelAttributeName($className, $propertyName));
+				$attributeType = $this->modelConfigurationManager->getModelAttributeType($className, $propertyName);
 				$attributeValue = ObjectAccess::getProperty($domainModel, $propertyName);
-				$attributeOptions = $this->reflectionService->getModelAttributeOptions($className, $propertyName);
-
-				if ($this->reflectionService->isRelation($className, $propertyName) === FALSE) {
+				$attributeOptions = $this->modelConfigurationManager->getModelAttributeOptions($className, $propertyName);
+				if ($this->modelConfigurationManager->isRelation($className, $propertyName) === FALSE) {
 					$attribute = $this->attributeFactory->createByType($attributeType, $attributeName, $attributeValue, $attributeOptions);
 					$model->addAttribute($attribute);
 				} else {
 					// Relation attributes can be omitted if they are NULL or contain no items
 					if ($attributeValue !== NULL && (!$attributeValue instanceof Collection || $attributeValue->count() > 0)) {
-						$relationAnnotation = $this->reflectionService->getRelation($className, $propertyName);
+						$relationAnnotation = $this->modelConfigurationManager->getRelation($className, $propertyName);
 						$relation = $this->createRelation($relationAnnotation, $attributeName, $attributeValue, $model);
 						$model->addRelation($relation);
 					}

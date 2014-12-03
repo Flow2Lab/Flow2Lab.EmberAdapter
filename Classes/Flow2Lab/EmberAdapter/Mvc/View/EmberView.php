@@ -9,11 +9,17 @@ use Flow2Lab\EmberAdapter\Model\Relation\HasMany;
 use Flow2Lab\EmberAdapter\Model\RelationCollection;
 use Flow2Lab\EmberAdapter\Model\Serializer\ArraySerializer;
 use Flow2Lab\EmberAdapter\Utility\EmberInflector;
+
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Mvc\View\AbstractView;
 use TYPO3\Flow\Mvc\View\JsonView;
 use TYPO3\Flow\Reflection\ObjectAccess;
 
+/**
+ * Class EmberView
+ *
+ * @package Flow2Lab\EmberAdapter\Mvc\View
+ */
 class EmberView extends AbstractView {
 
 	/**
@@ -63,7 +69,7 @@ class EmberView extends AbstractView {
 	 */
 	protected function transformValue($value, $modelName = '') {
 		if (is_array($value) || $value instanceof \ArrayAccess) {
-			if (count($value) === 0) {
+			if ($modelName !== '') {
 				$this->renderedModels[lcfirst(EmberInflector::pluralize($modelName))] = array();
 			}
 			foreach ($value as $modelKey => $element) {

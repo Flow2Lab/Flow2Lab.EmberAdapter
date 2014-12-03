@@ -158,4 +158,34 @@ abstract class AbstractEndpointController extends ActionController {
 		$this->response->setStatus(204);
 		return '';
 	}
+
+	/**
+	 * Maps arguments delivered by the request object to the local controller arguments.
+	 *
+	 * @return void
+	 * @throws \TYPO3\Flow\Mvc\Exception\RequiredArgumentMissingException
+	 * @api
+	 */
+	protected function mapRequestArgumentsToControllerArguments() {
+		foreach ($this->arguments as $argument) {
+			$argumentName = EmberDataUtility::camelize($argument->getName());
+			if ($this->request->hasArgument($argumentName)) {
+				$arguments = $this->request->getArgument($argumentName);
+				if (is_array($arguments)) {
+					foreach ($arguments as $propertyName => $propertyValue) {
+						if ($propertyName !== '__identity') {
+							unset($arguments[$propertyName]);
+							$arguments[EmberDataUtility::camelize($propertyName)] = $propertyValue;
+						}
+					}
+					$argument->setValue($arguments);
+				} else {
+					$argument->setValue($this->request->getArgument($argumentName));
+				}
+
+			} elseif ($argument->isRequired()) {
+				throw new \TYPO3\Flow\Mvc\Exception\RequiredArgumentMissingException('Required argument "' . $argumentName  . '" is not set.', 1298012500);
+			}
+		}
+	}
 }
