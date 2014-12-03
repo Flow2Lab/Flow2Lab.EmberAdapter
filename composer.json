@@ -1,21 +1,21 @@
 {
-    "name":"flowpack/emberadapter",
-    "description":"An adapter package for Ember Data.",
-    "keywords":["php"],
-    "type":"typo3-flow-package",
-    "minimum-stability": "dev",
-    "authors":[
-        {
-            "name":"Philipp Maier",
-	        "name":"Sebastiaan van Parijs"
-        }
-    ],
-    "require":{
-        "typo3/flow": "*"
-    },
-    "autoload":{
-        "psr-0":{
-            "Flowpack\\EmberAdapter":"Classes/"
-        }
-    }
+	"name": "flow2lab/emberadapter",
+	"description": "An adapter package for Ember Data.",
+	"keywords": ["php"],
+	"type": "typo3-flow-package",
+	"minimum-stability": "dev",
+	"authors": [
+		{
+			"name": "Philipp Maier",
+			"name": "Sebastiaan van Parijs"
+		}
+	],
+	"require": {
+		"typo3/flow": "*"
+	},
+	"autoload": {
+		"psr-0": {
+			"Flow2Lab\\EmberAdapter": "Classes/"
+		}
+	}
 }
