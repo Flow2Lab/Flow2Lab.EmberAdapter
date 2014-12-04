@@ -56,7 +56,7 @@ class HandlebarsViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelp
 			$templateName = $templateNamePrefix . $templateName;
 		}
 
-		return \Radmiraal\Emberjs\Utility\EmberDataUtility::uncamelize($templateName);
+		return \Flow2Lab\EmberAdapter\Utility\EmberDataUtility::uncamelize($templateName);
 	}
 
 	/**
