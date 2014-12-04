@@ -1,5 +1,5 @@
 <?php
-namespace Flowpack\EmberAdapter\ViewHelpers;
+namespace Flow2Lab\EmberAdapter\ViewHelpers;
 
 use TYPO3\Flow\Annotations as Flow;
 
