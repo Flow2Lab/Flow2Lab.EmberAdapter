@@ -5,6 +5,7 @@ use Flow2Lab\EmberAdapter\Utility\EmberDataUtility;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
+ * TODO: this does not reflect the current working state
  * This REST controller is made for handling ember-data DS.RESTAdapter calls.
  * It's only capable of handling 1 argument for an action, named 'resource'.
  */

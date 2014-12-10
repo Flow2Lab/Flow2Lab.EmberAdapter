@@ -47,6 +47,12 @@ abstract class AbstractEndpointController extends ActionController {
 	protected $receivedData;
 
 	/**
+	 * Meta data received
+	 * @var array
+	 */
+	protected $metaData;
+
+	/**
 	 * @return void
 	 */
 	protected function initializeAction() {
@@ -64,6 +70,12 @@ abstract class AbstractEndpointController extends ActionController {
 		$arguments = $this->request->getArguments();
 		$this->modelName = $arguments['modelName'];
 		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->modelName) . 'Repository';
+
+		foreach ($arguments as $metaKey => $metaData) {
+			if ($metaKey !== 'modelName') {
+				$this->metaData[$metaKey] = $metaData;
+			}
+		}
 
 		if ($this->objectManager->isRegistered($repositoryName)) {
 			$this->repository = $this->objectManager->get($repositoryName);
