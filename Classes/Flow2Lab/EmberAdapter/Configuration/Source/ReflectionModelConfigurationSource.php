@@ -1,10 +1,13 @@
 <?php
-namespace Flow2Lab\EmberAdapter\Backend;
+namespace Flow2Lab\EmberAdapter\Configuration\Source;
 
 use Flow2Lab\EmberAdapter\Annotations\AbstractRelationAttribute;
 use Flow2Lab\EmberAdapter\Annotations\Attribute;
+use Flow2Lab\EmberAdapter\Annotations\BelongsTo;
+use Flow2Lab\EmberAdapter\Annotations\HasMany;
 use Flow2Lab\EmberAdapter\Annotations\Model;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Annotations\ValueObject;
 use TYPO3\Flow\Utility\TypeHandling;
 
 /**
@@ -19,16 +22,20 @@ use TYPO3\Flow\Utility\TypeHandling;
  */
 class ReflectionModelConfigurationSource implements ModelConfigurationSourceInterface {
 
-	const ANNOTATION_MODEL = 'Flow2Lab\\EmberAdapter\\Annotations\\Model';
-	const ANNOTATION_ATTRIBUTE = 'Flow2Lab\\EmberAdapter\\Annotations\\Attribute';
-	const ANNOTATION_BELONGS_TO = 'Flow2Lab\\EmberAdapter\\Annotations\\BelongsTo';
-	const ANNOTATION_HAS_MANY = 'Flow2Lab\\EmberAdapter\\Annotations\\HasMany';
-
 	/**
 	 * @Flow\Inject
 	 * @var \TYPO3\Flow\Reflection\ReflectionService
 	 */
 	protected $reflectionService;
+
+	/**
+	 * This is the fallback configuration source
+	 *
+	 * @return integer Priority of the configuration
+	 */
+	public function getPriority() {
+		return 1;
+	}
 
 	/**
 	 * @param object $object
@@ -43,7 +50,7 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 	 * @return boolean
 	 */
 	public function isClassEmberModel($className) {
-		return $this->reflectionService->isClassAnnotatedWith($className, self::ANNOTATION_MODEL);
+		return $this->reflectionService->isClassAnnotatedWith($className, Model::class);
 	}
 
 	/**
@@ -59,7 +66,7 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 		}
 
 		/** @var Model $model */
-		$model = $this->reflectionService->getClassAnnotation($className, self::ANNOTATION_MODEL);
+		$model = $this->reflectionService->getClassAnnotation($className, Model::class);
 
 		if ($model->name !== NULL) {
 			return $model->name;
@@ -71,10 +78,10 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 
 	/**
 	 * @param string $className
-	 * @return array<string>
+	 * @return string[]
 	 */
 	public function getModelPropertyNames($className) {
-		return $this->reflectionService->getPropertyNamesByAnnotation($className, self::ANNOTATION_ATTRIBUTE);
+		return $this->reflectionService->getPropertyNamesByAnnotation($className, Attribute::class);
 	}
 
 	/**
@@ -123,7 +130,7 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 	 */
 	protected function getAttributeAnnotation($className, $propertyName) {
 		/** @var Attribute $propertyAnnotation */
-		$propertyAnnotation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_ATTRIBUTE);
+		$propertyAnnotation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, Attribute::class);
 
 		if ($propertyAnnotation === NULL) {
 			throw new \InvalidArgumentException('Given property is not annotated as ember attribute.', 1390666390);
@@ -138,8 +145,8 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 	 */
 	public function isRelation($className, $propertyName) {
 		return (
-			$this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_BELONGS_TO)
-			|| $this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_HAS_MANY)
+			$this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, BelongsTo::class)
+			|| $this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, HasMany::class)
 		);
 	}
 
@@ -153,10 +160,10 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 			return NULL;
 		}
 
-		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_BELONGS_TO)) {
-			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_BELONGS_TO);
+		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, BelongsTo::class)) {
+			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, BelongsTo::class);
 		} else {
-			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_HAS_MANY);
+			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, HasMany::class);
 		}
 
 		// Parse the properties type and check if it is a value objects.
@@ -167,7 +174,7 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 			$parsedType = TypeHandling::parseType($tag);
 			$propertyType = ($parsedType['elementType']) ?: $parsedType['type'];
 
-			if ($this->reflectionService->isClassAnnotatedWith($propertyType, 'TYPO3\\Flow\\Annotations\\ValueObject')) {
+			if ($this->reflectionService->isClassAnnotatedWith($propertyType, ValueObject::class)) {
 				$relation->sideload = TRUE;
 			}
 		}

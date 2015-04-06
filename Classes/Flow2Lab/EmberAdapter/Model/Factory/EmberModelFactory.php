@@ -8,7 +8,7 @@ use Flow2Lab\EmberAdapter\Model\GenericEmberModel;
 use Flow2Lab\EmberAdapter\Model\Relation\AbstractRelation;
 use Flow2Lab\EmberAdapter\Model\Relation\BelongsTo;
 use Flow2Lab\EmberAdapter\Model\Relation\HasMany;
-use Flow2Lab\EmberAdapter\ConfigurationManager\ModelConfigurationManager;
+use Flow2Lab\EmberAdapter\Configuration\ModelConfigurationManager;
 use Flow2Lab\EmberAdapter\Utility\EmberDataUtility;
 
 use TYPO3\Flow\Annotations as Flow;
@@ -52,7 +52,7 @@ class EmberModelFactory {
 		}
 
 		$modelName = $this->modelConfigurationManager->getModelNameByObject($domainModel);
-		$modelIdentifier = $this->persistenceManager->getIdentifierByObject($domainModel);
+		$modelIdentifier = $this->modelConfigurationManager->getModelIdentifierByObject($domainModel);
 
 		// todo: add optional parameter class name to @Ember\Model annotation (must implement EmberModelInterface)
 		$model = new GenericEmberModel($modelName, $modelIdentifier);
@@ -63,6 +63,7 @@ class EmberModelFactory {
 				$attributeType = $this->modelConfigurationManager->getModelAttributeType($className, $propertyName);
 				$attributeValue = ObjectAccess::getProperty($domainModel, $propertyName);
 				$attributeOptions = $this->modelConfigurationManager->getModelAttributeOptions($className, $propertyName);
+
 				if ($this->modelConfigurationManager->isRelation($className, $propertyName) === FALSE) {
 					$attribute = $this->attributeFactory->createByType($attributeType, $attributeName, $attributeValue, $attributeOptions);
 					$model->addAttribute($attribute);

@@ -3,7 +3,6 @@ namespace Flow2Lab\EmberAdapter\Mvc\View;
 
 use Flow2Lab\EmberAdapter\Model\EmberModelInterface;
 use Flow2Lab\EmberAdapter\Model\Factory\EmberModelFactory;
-use Flow2Lab\EmberAdapter\Model\Relation\AbstractRelation;
 use Flow2Lab\EmberAdapter\Model\Relation\BelongsTo;
 use Flow2Lab\EmberAdapter\Model\Relation\HasMany;
 use Flow2Lab\EmberAdapter\Model\RelationCollection;
@@ -12,8 +11,6 @@ use Flow2Lab\EmberAdapter\Utility\EmberInflector;
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Mvc\View\AbstractView;
-use TYPO3\Flow\Mvc\View\JsonView;
-use TYPO3\Flow\Reflection\ObjectAccess;
 
 /**
  * Class EmberView
@@ -58,6 +55,7 @@ class EmberView extends AbstractView {
 	public function render() {
 		unset($this->variables['settings']);
 
+		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
 		$this->transformValue($this->variables);
 		$this->renderArray();
 		return json_encode($this->renderedModels);
