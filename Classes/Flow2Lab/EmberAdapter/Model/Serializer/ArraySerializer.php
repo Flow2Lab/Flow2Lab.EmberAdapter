@@ -76,8 +76,16 @@ class ArraySerializer {
 		}
 
 		foreach ($model->getRelations() as $relation) {
+			$relationName = $relation->getName();
+			if ($relation instanceof BelongsTo) {
+				$relationName = $relation->getName() . '_id';
+			} else if ($relation instanceof HasMany) {
+				$relationName = $relation->getName() . '_ids';
+			}
+
+
 			/** @var AbstractRelation $relation */
-			$serializedModel[$relation->getName()] = $this->serializeRelation($relation);
+			$serializedModel[$relationName] = $this->serializeRelation($relation);
 		}
 
 		return $serializedModel;
