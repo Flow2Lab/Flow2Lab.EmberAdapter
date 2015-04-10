@@ -200,4 +200,35 @@ abstract class AbstractEndpointController extends ActionController {
 			}
 		}
 	}
+
+	/**
+	 * @return string
+	 * @api
+	 */
+	protected function errorAction() {
+		$this->addErrorFlashMessage();
+
+		return $this->getFlattenedValidationErrorMessage();
+	}
+
+	/**
+	 * Returns a json object containing all validation errors.
+	 *
+	 * @return string
+	 */
+	protected function getFlattenedValidationErrorMessage() {
+		$outputMessage = 'Validation failed while trying to call ' . get_class($this) . '->' . $this->actionMethodName . '().' . PHP_EOL;
+		$logMessage = $outputMessage;
+
+		$errorMessages = array();
+		foreach ($this->arguments->getValidationResults()->getFlattenedErrors() as $propertyPath => $errors) {
+			foreach ($errors as $error) {
+				$errorMessages[$propertyPath][] = $error->render();
+				$logMessage .= 'Error for ' . $propertyPath . ':  ' . $error->render() . PHP_EOL;
+			}
+		}
+		$this->systemLogger->log($logMessage, LOG_ERR);
+
+		return json_encode($errorMessages);
+	}
 }
