@@ -124,7 +124,12 @@ class ModelConfigurationManager implements ModelConfigurationSourceInterface {
 	 * @return boolean
 	 */
 	public function isRelation($className, $propertyName) {
-		return FALSE;
+		if ($this->yamlModelConfigurationSource->isClassEmberModel($className)) {
+			return FALSE;
+		}
+		if ($this->reflectionModelConfigurationSource->isClassEmberModel($className)) {
+			return $this->reflectionModelConfigurationSource->isRelation($className, $propertyName);
+		}
 	}
 
 	/**
@@ -133,6 +138,11 @@ class ModelConfigurationManager implements ModelConfigurationSourceInterface {
 	 * @return NULL|AbstractRelationAttribute
 	 */
 	public function getRelation($className, $propertyName) {
-
+		if ($this->yamlModelConfigurationSource->isClassEmberModel($className)) {
+			return NULL;
+		}
+		if ($this->reflectionModelConfigurationSource->isClassEmberModel($className)) {
+			return $this->reflectionModelConfigurationSource->getRelation($className, $propertyName);
+		}
 	}
 }
