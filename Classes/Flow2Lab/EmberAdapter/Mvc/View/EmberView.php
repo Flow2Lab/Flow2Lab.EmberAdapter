@@ -8,6 +8,7 @@ use Flow2Lab\EmberAdapter\Model\Relation\BelongsTo;
 use Flow2Lab\EmberAdapter\Model\Relation\HasMany;
 use Flow2Lab\EmberAdapter\Model\RelationCollection;
 use Flow2Lab\EmberAdapter\Model\Serializer\ArraySerializer;
+use Flow2Lab\EmberAdapter\Utility\EmberDataUtility;
 use Flow2Lab\EmberAdapter\Utility\EmberInflector;
 
 use TYPO3\Flow\Annotations as Flow;
@@ -175,7 +176,7 @@ class EmberView extends AbstractView {
 					$this->renderedModels[$singularModelName] = $this->emberModelSerializer->serialize($models[0]);
 				}
 			} else {
-				$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
+				$pluralizedModelName = lcfirst(EmberDataUtility::uncamelize(EmberInflector::pluralize($modelName)));
 				$this->renderedModels[$pluralizedModelName] = array();
 
 				foreach ($models as $model) {
