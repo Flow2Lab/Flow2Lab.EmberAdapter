@@ -68,8 +68,12 @@ class EmberModelFactory {
 					$attribute = $this->attributeFactory->createByType($attributeType, $attributeName, $attributeValue, $attributeOptions);
 					$model->addAttribute($attribute);
 				} else {
+					if ($attributeValue instanceof \Iterator) {
+						$attributeValue = iterator_to_array($attributeValue);
+					}
+
 					// Relation attributes can be omitted if they are NULL or contain no items
-					if ($attributeValue !== NULL && (!$attributeValue instanceof Collection || $attributeValue->count() > 0)) {
+					if ($attributeValue !== NULL && count($attributeValue) > 0) {
 						$relationAnnotation = $this->modelConfigurationManager->getRelation($className, $propertyName);
 						$relation = $this->createRelation($relationAnnotation, $attributeName, $attributeValue, $model);
 						$model->addRelation($relation);
@@ -134,7 +138,7 @@ class EmberModelFactory {
 		} else {
 			$relatedModelIdentifiers = array();
 			foreach ($attributeValue as $relatedDomainModel) {
-				$relatedModelIdentifiers[] = $this->persistenceManager->getIdentifierByObject($relatedDomainModel);
+				$relatedModelIdentifiers[] = $this->modelConfigurationManager->getModelIdentifierByObject($relatedDomainModel);
 			}
 			$hasManyRelation->setIds($relatedModelIdentifiers);
 		}
