@@ -32,14 +32,14 @@ class EmberView extends AbstractView {
 	protected $emberModelSerializer;
 
 	/**
-	 * @var array<EmberModelInterface>
+	 * @var EmberModelInterface[]
 	 */
 	protected $models = array();
 
 	/**
 	 * Contains an array of already loaded models
 	 *
-	 * @var array<string>
+	 * @var string[]
 	 */
 	protected $addedModels = array();
 
@@ -50,15 +50,47 @@ class EmberView extends AbstractView {
 	protected $renderedModels = array();
 
 	/**
+	 * @var string
+	 */
+	protected $rootModel = NULL;
+
+	/**
 	 * @return string The JSON encoded variables
 	 */
 	public function render() {
 		unset($this->variables['settings']);
 
+		$this->detectRootModel($this->variables);
+
 		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
 		$this->transformValue($this->variables);
 		$this->renderArray();
 		return json_encode($this->renderedModels);
+	}
+
+	/**
+	 * When displaying a single model, the key must not be pluralized while any sideloaded
+	 * entries have to maintain their pluralized key.
+	 *
+	 * This can be detected when looking at the given data. If the given data consists of
+	 * one item, and that item is an object, it is considered to be a single view.
+	 *
+	 * Example:
+	 * $this->view->assign('someIrrelevantKey', $object);
+	 *
+	 * Will result in {'modelName': { serialized model }}
+	 *
+	 * $this->view->assign('someIrrelevantKey', [$object1, $object2, $object3]);
+	 *
+	 * Will result in {'modelNames': [{...}, {...}]}
+	 *
+	 * @param array $models
+	 */
+	protected function detectRootModel($models) {
+		if (count($models) === 1 && is_object(current($models))) {
+			$rootModel = $this->emberModelFactory->create(current($models));
+			$this->rootModel = $rootModel->getName();
+		}
 	}
 
 	/**
@@ -161,19 +193,12 @@ class EmberView extends AbstractView {
 		}
 
 		foreach ($groupedModels as $modelName => $models) {
-			if (count($models) === 1) {
-					// Determine the action to give a proper response:
-					// An array of 1 object or 1 object
-				if ($this->controllerContext->getRequest()->getControllerActionName() === 'list') {
-					$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
-					$this->renderedModels[$pluralizedModelName] = array();
-					$this->renderedModels[$pluralizedModelName][] = $this->emberModelSerializer->serialize($models[0]);
-				} else {
-					$singularModelName = lcfirst($modelName);
-					$this->renderedModels[$singularModelName] = $this->emberModelSerializer->serialize($models[0]);
-				}
+			$modelName = lcfirst($modelName);
+
+			if (count($models) === 1 && $modelName === lcfirst($this->rootModel)) {
+				$this->renderedModels[$modelName] = $this->emberModelSerializer->serialize($models[0]);
 			} else {
-				$pluralizedModelName = lcfirst(EmberInflector::pluralize($modelName));
+				$pluralizedModelName = EmberInflector::pluralize($modelName);
 				$this->renderedModels[$pluralizedModelName] = array();
 
 				foreach ($models as $model) {
