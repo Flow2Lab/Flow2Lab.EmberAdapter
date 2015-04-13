@@ -87,8 +87,29 @@ class EmberView extends AbstractView {
 	 * @param array $models
 	 */
 	protected function detectRootModel($models) {
-		if (count($models) === 1 && is_object(current($models))) {
-			$rootModel = $this->emberModelFactory->create(current($models));
+		if (count($models) !== 1) {
+			return;
+		}
+
+		$model = current($models);
+
+		if (is_array($model) === TRUE) {
+			return;
+		}
+
+		// load the QueryResult
+		if ($model instanceof \Iterator) {
+			$model = iterator_to_array($model);
+			if (count($model) !== 1) {
+				return;
+			}
+
+			$model = array_shift($model);
+		}
+
+		$rootModel = $this->emberModelFactory->create($model);
+
+		if ($rootModel !== NULL) {
 			$this->rootModel = $rootModel->getName();
 		}
 	}
@@ -193,6 +214,10 @@ class EmberView extends AbstractView {
 		}
 
 		foreach ($groupedModels as $modelName => $models) {
+			if (count($models) === 0) {
+				continue;
+			}
+
 			$modelName = lcfirst($modelName);
 
 			if (count($models) === 1 && $modelName === lcfirst($this->rootModel)) {
