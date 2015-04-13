@@ -59,7 +59,7 @@ class EmberModelFactory {
 
 		foreach ($this->modelConfigurationManager->getModelPropertyNames($className) as $propertyName) {
 			if (ObjectAccess::isPropertyGettable($domainModel, $propertyName)) {
-				$attributeName = EmberDataUtility::uncamelize($this->modelConfigurationManager->getModelAttributeName($className, $propertyName));
+				$attributeName = $this->modelConfigurationManager->getModelAttributeName($className, $propertyName);
 				$attributeType = $this->modelConfigurationManager->getModelAttributeType($className, $propertyName);
 				$attributeValue = ObjectAccess::getProperty($domainModel, $propertyName);
 				$attributeOptions = $this->modelConfigurationManager->getModelAttributeOptions($className, $propertyName);
@@ -72,12 +72,9 @@ class EmberModelFactory {
 						$attributeValue = iterator_to_array($attributeValue);
 					}
 
-					// Relation attributes can be omitted if they are NULL or contain no items
-					if ($attributeValue !== NULL && count($attributeValue) > 0) {
-						$relationAnnotation = $this->modelConfigurationManager->getRelation($className, $propertyName);
-						$relation = $this->createRelation($relationAnnotation, $attributeName, $attributeValue, $model);
-						$model->addRelation($relation);
-					}
+					$relationAnnotation = $this->modelConfigurationManager->getRelation($className, $propertyName);
+					$relation = $this->createRelation($relationAnnotation, $attributeName, $attributeValue, $model);
+					$model->addRelation($relation);
 				}
 			}
 		}
