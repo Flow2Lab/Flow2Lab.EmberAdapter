@@ -1,5 +1,5 @@
 <?php
-namespace Flow2Lab\EmberAdapter\Backend;
+namespace Flow2Lab\EmberAdapter\Configuration\Source;
 
 use Flow2Lab\EmberAdapter\Annotations\AbstractRelationAttribute;
 use TYPO3\Flow\Annotations as Flow;
@@ -15,6 +15,11 @@ use TYPO3\Flow\Annotations as Flow;
  * @Flow\Scope("singleton")
  */
 interface ModelConfigurationSourceInterface {
+
+	/**
+	 * @return integer Priority of the configuration
+	 */
+	public function getPriority();
 
 	/**
 	 * @param object $object
@@ -78,4 +83,5 @@ interface ModelConfigurationSourceInterface {
 	 * @return NULL|AbstractRelationAttribute
 	 */
 	public function getRelation($className, $propertyName);
+
 }

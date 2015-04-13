@@ -31,7 +31,7 @@ class GenericEmberModel implements EmberModelInterface {
 	 * @param string $id
 	 * @throws \InvalidArgumentException
 	 */
-	public function __construct($name, $id ) {
+	public function __construct($name, $id) {
 		if (is_string($name) === FALSE || $name === '' || is_string($id) === FALSE || $id === '') {
 			throw new \InvalidArgumentException('The models name and identifier must not be empty.', 1390670157);
 		}

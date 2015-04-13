@@ -1,16 +1,14 @@
 <?php
-namespace Flow2Lab\EmberAdapter\Backend;
+namespace Flow2Lab\EmberAdapter\Configuration\Source;
 
+use Flow2Lab\EmberAdapter\Annotations\AbstractRelationAttribute;
+use Flow2Lab\EmberAdapter\Configuration\Source\Exception\ConfigurationNotAvailableException;
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Utility\TypeHandling;
+use TYPO3\Flow\Configuration\ConfigurationManager;
+use TYPO3\Flow\Reflection\ReflectionService;
 
 /**
- * Mind the naming!
- * ClassName: Name of the Flow class
- * PropertyName: Name of the Flow class property (can be the attribute name, but must not!)
- *
- * ModelName: Name of the ember model
- * AttributeName: Name of the attribute inside an ember model
+ * Yaml Source for configuring ember model with a yaml file
  *
  * @Flow\Scope("singleton")
  */
@@ -21,28 +19,38 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	const HAS_MANY = 'HasMany';
 
 	/**
-	 * @var \TYPO3\Flow\Configuration\ConfigurationManager
+	 * @var ConfigurationManager
 	 * @Flow\Inject
 	 */
 	protected $configurationManager;
 
 	/**
+	 * @var ReflectionService
 	 * @Flow\Inject
-	 * @var \TYPO3\Flow\Reflection\ReflectionService
 	 */
 	protected $reflectionService;
 
 	/**
+	 * @return integer Priority of the configuration
+	 */
+	public function getPriority() {
+		return 10;
+	}
+
+	/**
 	 * @param object $object
 	 * @return string
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getClassNameByObject($object) {
-		return $this->reflectionService->getClassNameByObject($object);
+		// todo: make configurable
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
 	 * @param string $className
 	 * @return boolean
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function isClassEmberModel($className) {
 		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
@@ -50,29 +58,24 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 				return TRUE;
 			}
 		}
-		return FALSE;
+
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
 	 * @param object $object
 	 * @return string Ember model name
-	 * @throws \InvalidArgumentException If the given object is not annotated as ember model
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getModelNameByObject($object) {
-		$className = $this->reflectionService->getClassNameByObject($object);
-
-		if ($this->isClassEmberModel($className) === FALSE) {
-			throw new \InvalidArgumentException('Given object is not an ember model.', 1390663864);
-		}
-
-		// TODO: Add possibility to set custom name
-		$classReflection = new \ReflectionClass($className);
-		return $classReflection->getShortName();
+		// todo: implement
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
 	 * @param string $className
-	 * @return array<string>
+	 * @return NULL|string[]
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getModelPropertyNames($className) {
 		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
@@ -80,6 +83,8 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 				return array_keys($configuration['properties']);
 			}
 		}
+
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
@@ -89,8 +94,8 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws \InvalidArgumentException
 	 */
 	public function getModelAttributeName($className, $propertyName) {
+		// todo: check if name is configured
 		$propertyConfiguration = $this->getAttributeConfiguration($className, $propertyName);
-
 		return $propertyName;
 	}
 
@@ -98,7 +103,7 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @param string $className
 	 * @param string $propertyName
 	 * @return string
-	 * @throws \InvalidArgumentException
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getModelAttributeType($className, $propertyName) {
 		$propertyConfiguration = $this->getAttributeConfiguration($className, $propertyName);
@@ -106,25 +111,31 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 		if (isset($propertyConfiguration['type'])) {
 			return $propertyConfiguration['type'];
 		}
-		throw new \InvalidArgumentException('Given property has no configured ember type.', 1390666395);
+
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
 	 * @param string $className
 	 * @param string $propertyName
 	 * @return array
-	 * @throws \InvalidArgumentException
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getModelAttributeOptions($className, $propertyName) {
 		$propertyConfiguration = $this->getAttributeConfiguration($className, $propertyName);
-		return isset($propertyConfiguration['options']) ? $propertyConfiguration['options'] : array();
+
+		if (isset($propertyConfiguration['options'])) {
+			return $propertyConfiguration['options'];
+		}
+
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
 	 * @param string $className
 	 * @param string $propertyName
 	 * @return array
-	 * @throws \InvalidArgumentException
+	 * @throws ConfigurationNotAvailableException
 	 */
 	protected function getAttributeConfiguration($className, $propertyName) {
 		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
@@ -133,13 +144,14 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 			}
 		}
 
-		throw new \InvalidArgumentException('Given property is not configured as ember attribute.', 1390666391);
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
 	 * @param string $className
 	 * @param string $propertyName
-	 * @return boolean
+	 * @return bool
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function isRelation($className, $propertyName) {
 		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
@@ -147,38 +159,19 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 				return TRUE;
 			}
 		}
+
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
 	 * @param string $className
 	 * @param string $propertyName
-	 * @return NULL|AbstractRelationAttribute
+	 * @return AbstractRelationAttribute|NULL
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getRelation($className, $propertyName) {
-		if ($this->isRelation($className, $propertyName) === FALSE) {
-			return NULL;
-		}
-
-		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::ANNOTATION_BELONGS_TO)) {
-			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_BELONGS_TO);
-		} else {
-			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::ANNOTATION_HAS_MANY);
-		}
-
-		// Parse the properties type and check if it is a value objects.
-		// Value objects have to be sideloaded since it's impossible to provide a REST resource for them.
-		$tags = $this->reflectionService->getPropertyTagValues($className, $propertyName, 'var');
-		$tag = array_shift($tags);
-		if ($tag !== NULL) {
-			$parsedType = TypeHandling::parseType($tag);
-			$propertyType = ($parsedType['elementType']) ?: $parsedType['type'];
-
-			if ($this->reflectionService->isClassAnnotatedWith($propertyType, 'TYPO3\\Flow\\Annotations\\ValueObject')) {
-				$relation->sideload = TRUE;
-			}
-		}
-
-		return $relation;
+		// todo: implement yaml configuration
+		throw new ConfigurationNotAvailableException();
 	}
 
 }
