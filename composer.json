@@ -4,6 +4,7 @@
 	"keywords": ["php"],
 	"type": "typo3-flow-package",
 	"minimum-stability": "dev",
+	"license": "MIT",
 	"authors": [
 		{
 			"name": "Philipp Maier"
