@@ -127,11 +127,13 @@ class EmberModelFactory {
 
 		if ($relation->sideload === TRUE) {
 			$relatedModels = array();
-			foreach ($attributeValue as $relatedDomainModel) {
-				$relatedModel = $this->create($relatedDomainModel);
-				$relatedModels[] = $relatedModel;
+			if (count($attributeValue) > 0) {
+				foreach ($attributeValue as $relatedDomainModel) {
+					$relatedModel = $this->create($relatedDomainModel);
+					$relatedModels[] = $relatedModel;
+				}
+				$hasManyRelation->setRelatedModels($relatedModels);
 			}
-			$hasManyRelation->setRelatedModels($relatedModels);
 		} else {
 			$relatedModelIdentifiers = array();
 			foreach ($attributeValue as $relatedDomainModel) {

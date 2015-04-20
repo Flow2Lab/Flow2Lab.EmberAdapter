@@ -189,8 +189,10 @@ class EmberView extends AbstractView {
 				if ($relation instanceof BelongsTo) {
 					$this->addModel($relation->getRelatedModel());
 				} else {
-					foreach ($relation->getRelatedModels() as $relatedModel) {
-						$this->addModel($relatedModel);
+					if (count($relation->getRelatedModels()) > 0) {
+						foreach ($relation->getRelatedModels() as $relatedModel) {
+							$this->addModel($relatedModel);
+						}
 					}
 				}
 			}
