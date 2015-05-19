@@ -63,16 +63,15 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 
 	/**
 	 * @param object $object
-	 * @return string Ember model name
-	 * @throws \InvalidArgumentException If the given object is not annotated as ember model
+	 * @return string
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getModelNameByObject($object) {
 		$className = $this->reflectionService->getClassNameByObject($object);
 		if ($this->isClassEmberModel($className) === FALSE) {
-			throw new \InvalidArgumentException('Given object is not an ember model.', 1390663864);
+			throw new ConfigurationNotAvailableException();
 		}
 
-			// TODO: Add possibility to set custom name
 		$classReflection = new \ReflectionClass($className);
 		return $classReflection->getShortName();
 	}
