@@ -40,6 +40,9 @@ class ModelConfigurationManager {
 	 */
 	protected $configurationSources = [];
 
+	/**
+	 * Load configuration sources and prioritize them
+	 */
 	public function initializeObject() {
 		$configurationSourceClassNames = self::getModelConfigurationSourceImplementationClassNames($this->objectManager);
 
