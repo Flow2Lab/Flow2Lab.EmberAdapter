@@ -31,6 +31,31 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	protected $reflectionService;
 
 	/**
+	 * @var array
+	 */
+	protected $yamlEmberModels = array();
+
+	/**
+	 * Initialize object
+	 */
+	public function initializeObject() {
+		foreach ($this->configurationManager->getConfiguration('EmberModels') as $emberClassName => $properties) {
+			$this->yamlEmberModels[$emberClassName] = $properties;
+		}
+	}
+
+	/**
+	 * @param $className
+	 * @return mixed
+	 * @throws ConfigurationNotAvailableException
+	 */
+	protected function assertConfigurationExists($className) {
+		if (array_key_exists($className, $this->yamlEmberModels) === FALSE) {
+			throw new ConfigurationNotAvailableException();
+		}
+	}
+
+	/**
 	 * @return integer Priority of the configuration
 	 */
 	public function getPriority() {
@@ -52,13 +77,7 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function isClassEmberModel($className) {
-		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
-			if ($configuration['className'] === $className) {
-				return TRUE;
-			}
-		}
-
-		throw new ConfigurationNotAvailableException();
+		return array_key_exists($className, $this->yamlEmberModels);
 	}
 
 	/**
@@ -68,38 +87,41 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 */
 	public function getModelNameByObject($object) {
 		$className = $this->reflectionService->getClassNameByObject($object);
-		if ($this->isClassEmberModel($className) === FALSE) {
-			throw new ConfigurationNotAvailableException();
-		}
 
-		$classReflection = new \ReflectionClass($className);
-		return $classReflection->getShortName();
+		$this->assertConfigurationExists($className);
+
+		return $this->yamlEmberModels[$className]['modelName'];
 	}
 
 	/**
 	 * @param string $className
-	 * @return NULL|string[]
+	 * @return array
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getModelPropertyNames($className) {
-		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
-			if ($configuration['className'] === $className) {
-				return array_keys($configuration['properties']);
-			}
+		$this->assertConfigurationExists($className);
+
+		if (isset($this->yamlEmberModels[$className]['properties']) === FALSE) {
+			return array();
 		}
 
-		throw new ConfigurationNotAvailableException();
+		return array_keys($this->yamlEmberModels[$className]['properties']);
 	}
 
 	/**
 	 * @param string $className
 	 * @param string $propertyName
 	 * @return string
-	 * @throws \InvalidArgumentException
+	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getModelAttributeName($className, $propertyName) {
 		$propertyConfiguration = $this->getAttributeConfiguration($className, $propertyName);
-		return $propertyName;
+
+		if (isset($propertyConfiguration['type'])) {
+			return $propertyName;
+		}
+
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
@@ -126,6 +148,7 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 */
 	public function getModelAttributeOptions($className, $propertyName) {
 		$propertyConfiguration = $this->getAttributeConfiguration($className, $propertyName);
+
 		if (isset($propertyConfiguration['options'])) {
 			return $propertyConfiguration['options'];
 		}
@@ -140,10 +163,12 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	protected function getAttributeConfiguration($className, $propertyName) {
-		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
-			if ($configuration['className'] === $className && isset($configuration['properties'][$propertyName])) {
-				return $configuration['properties'][$propertyName];
-			}
+		$this->assertConfigurationExists($className);
+
+		$configuration = $this->yamlEmberModels[$className];
+
+		if (isset($configuration['properties'][$propertyName])) {
+			return $configuration['properties'][$propertyName];
 		}
 
 		throw new ConfigurationNotAvailableException();
@@ -156,10 +181,12 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function isRelation($className, $propertyName) {
-		foreach ($this->configurationManager->getConfiguration(self::EmberModels) as $modelName => $configuration) {
-			if ($configuration['className'] === $className && (isset($configuration[$propertyName][self::BELONGS_TO]) || isset($configuration[$propertyName][self::HAS_MANY]))) {
-				return TRUE;
-			}
+		$this->assertConfigurationExists($className);
+
+		$configuration = $this->yamlEmberModels[$className]['properties'];
+
+		if (isset($configuration[$propertyName][self::BELONGS_TO]) || isset($configuration[$propertyName][self::HAS_MANY])) {
+			return TRUE;
 		}
 
 		throw new ConfigurationNotAvailableException();

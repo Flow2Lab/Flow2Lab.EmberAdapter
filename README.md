@@ -22,8 +22,8 @@ yaml code:
 
 ```YAML
 
-'MyModel':
-  className: MyPackage\Key\Domain\Model\MyModel
+'MyPackage\Key\Domain\Model\MyModel':
+  modelName: 'MyModel' 
   properties:
     description:
       type: 'string'

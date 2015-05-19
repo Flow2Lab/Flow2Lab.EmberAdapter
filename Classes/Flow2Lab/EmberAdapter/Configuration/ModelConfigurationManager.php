@@ -40,6 +40,9 @@ class ModelConfigurationManager {
 	 */
 	protected $configurationSources = [];
 
+	/**
+	 * Initialize Object
+	 */
 	public function initializeObject() {
 		$configurationSourceClassNames = self::getModelConfigurationSourceImplementationClassNames($this->objectManager);
 
