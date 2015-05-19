@@ -43,8 +43,7 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getClassNameByObject($object) {
-		// todo: make configurable
-		throw new ConfigurationNotAvailableException();
+		return $this->reflectionService->getClassNameByObject($object);
 	}
 
 	/**
@@ -65,11 +64,17 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	/**
 	 * @param object $object
 	 * @return string Ember model name
-	 * @throws ConfigurationNotAvailableException
+	 * @throws \InvalidArgumentException If the given object is not annotated as ember model
 	 */
 	public function getModelNameByObject($object) {
-		// todo: implement
-		throw new ConfigurationNotAvailableException();
+		$className = $this->reflectionService->getClassNameByObject($object);
+		if ($this->isClassEmberModel($className) === FALSE) {
+			throw new \InvalidArgumentException('Given object is not an ember model.', 1390663864);
+		}
+
+			// TODO: Add possibility to set custom name
+		$classReflection = new \ReflectionClass($className);
+		return $classReflection->getShortName();
 	}
 
 	/**
@@ -94,7 +99,6 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws \InvalidArgumentException
 	 */
 	public function getModelAttributeName($className, $propertyName) {
-		// todo: check if name is configured
 		$propertyConfiguration = $this->getAttributeConfiguration($className, $propertyName);
 		return $propertyName;
 	}
@@ -123,7 +127,6 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 */
 	public function getModelAttributeOptions($className, $propertyName) {
 		$propertyConfiguration = $this->getAttributeConfiguration($className, $propertyName);
-
 		if (isset($propertyConfiguration['options'])) {
 			return $propertyConfiguration['options'];
 		}
@@ -170,7 +173,27 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getRelation($className, $propertyName) {
-		// todo: implement yaml configuration
+		if ($this->isRelation($className, $propertyName) === FALSE) {
+			return NULL;
+		}
+		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::BELONGS_TO)) {
+			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::BELONGS_TO);
+		} else {
+			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::HAS_MANY);
+		}
+
+			// Parse the properties type and check if it is a value objects.
+			// Value objects have to be sideloaded since it's impossible to provide a REST resource for them.
+		$tags = $this->reflectionService->getPropertyTagValues($className, $propertyName, 'var');
+		$tag = array_shift($tags);
+		if ($tag !== NULL) {
+			$parsedType = TypeHandling::parseType($tag);
+			$propertyType = ($parsedType['elementType']) ?: $parsedType['type'];
+			if ($this->reflectionService->isClassAnnotatedWith($propertyType, 'TYPO3\\Flow\\Annotations\\ValueObject')) {
+				$relation->sideload = TRUE;
+			}
+		}
+
 		throw new ConfigurationNotAvailableException();
 	}
 

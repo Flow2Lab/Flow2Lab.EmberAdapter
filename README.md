@@ -17,9 +17,33 @@ Installation:
 Configuration:
 --------------
 
+To expose a third-party package model you can use YAML. First you create a `EmberModels.[MyCustomName].yaml`, second you add the following 
+yaml code:
+
+```YAML
+
+'MyModel':
+  className: MyPackage\Key\Domain\Model\MyModel
+  properties:
+    description:
+      type: 'string'
+      options: []
+    priority:
+      type: 'number'
+      options: []
+    creationDatetime:
+      type: 'date'
+      options: []
+    viewed:
+      type: 'boolean'
+      options: []
+
+```
+
 Contributions:
 --------------
 
+To contribute to this package please fork the package and make a pull request.
 
 Testing:
 --------
