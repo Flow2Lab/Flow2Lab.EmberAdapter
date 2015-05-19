@@ -43,7 +43,7 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getClassNameByObject($object) {
-		return $this->reflectionService->getClassNameByObject($object);
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
@@ -173,27 +173,6 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function getRelation($className, $propertyName) {
-		if ($this->isRelation($className, $propertyName) === FALSE) {
-			return NULL;
-		}
-		if ($this->reflectionService->isPropertyAnnotatedWith($className, $propertyName, self::BELONGS_TO)) {
-			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::BELONGS_TO);
-		} else {
-			$relation = $this->reflectionService->getPropertyAnnotation($className, $propertyName, self::HAS_MANY);
-		}
-
-			// Parse the properties type and check if it is a value objects.
-			// Value objects have to be sideloaded since it's impossible to provide a REST resource for them.
-		$tags = $this->reflectionService->getPropertyTagValues($className, $propertyName, 'var');
-		$tag = array_shift($tags);
-		if ($tag !== NULL) {
-			$parsedType = TypeHandling::parseType($tag);
-			$propertyType = ($parsedType['elementType']) ?: $parsedType['type'];
-			if ($this->reflectionService->isClassAnnotatedWith($propertyType, 'TYPO3\\Flow\\Annotations\\ValueObject')) {
-				$relation->sideload = TRUE;
-			}
-		}
-
 		throw new ConfigurationNotAvailableException();
 	}
 
