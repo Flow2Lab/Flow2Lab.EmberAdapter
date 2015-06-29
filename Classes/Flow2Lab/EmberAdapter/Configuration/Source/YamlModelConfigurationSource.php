@@ -77,7 +77,11 @@ class YamlModelConfigurationSource implements ModelConfigurationSourceInterface 
 	 * @throws ConfigurationNotAvailableException
 	 */
 	public function isClassEmberModel($className) {
-		return array_key_exists($className, $this->yamlEmberModels);
+		if (array_key_exists($className, $this->yamlEmberModels)) {
+			return TRUE;
+		};
+
+		throw new ConfigurationNotAvailableException();
 	}
 
 	/**
