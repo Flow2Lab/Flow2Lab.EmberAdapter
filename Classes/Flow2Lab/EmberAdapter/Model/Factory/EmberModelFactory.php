@@ -105,6 +105,11 @@ class EmberModelFactory {
 	protected function createBelongsToRelation($relation, $attributeName, $attributeValue) {
 		$belongsToRelation = new BelongsTo($attributeName, $relation->sideload);
 
+		if ($attributeValue === NULL) {
+			$belongsToRelation->setId(NULL);
+			return $belongsToRelation;
+		}
+
 		if ($relation->sideload === TRUE) {
 			$relatedModel = $this->create($attributeValue);
 			$belongsToRelation->setRelatedModel($relatedModel);

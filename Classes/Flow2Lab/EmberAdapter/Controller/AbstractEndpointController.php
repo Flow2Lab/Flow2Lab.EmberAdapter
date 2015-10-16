@@ -6,6 +6,8 @@ use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Mvc\Controller\ActionController;
 use TYPO3\Flow\Object\ObjectManagerInterface;
 use TYPO3\Flow\Persistence\PersistenceManagerInterface;
+use TYPO3\Flow\Mvc\Routing\RouterInterface;
+use TYPO3\Flow\Mvc\Routing\Route;
 
 abstract class AbstractEndpointController extends ActionController {
 
@@ -37,6 +39,12 @@ abstract class AbstractEndpointController extends ActionController {
 	protected $persistenceManager;
 
 	/**
+	 * @Flow\Inject
+	 * @var RouterInterface
+	 */
+	protected $router;
+
+	/**
 	 * @var string
 	 */
 	protected $resourceArgumentName;
@@ -50,7 +58,7 @@ abstract class AbstractEndpointController extends ActionController {
 	 * Meta data received
 	 * @var array
 	 */
-	protected $metaData;
+	protected $metaData = array();
 
 	/**
 	 * @return void
@@ -71,45 +79,51 @@ abstract class AbstractEndpointController extends ActionController {
 		$this->modelName = $arguments['modelName'];
 		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->modelName) . 'Repository';
 
-		foreach ($arguments as $metaKey => $metaData) {
-			if ($metaKey !== 'modelName') {
-				$this->metaData[$metaKey] = $metaData;
-			}
-		}
-
-		if ($this->objectManager->isRegistered($repositoryName)) {
-			$this->repository = $this->objectManager->get($repositoryName);
+		if ($this->request->getHttpRequest()->getMethod() === 'OPTIONS') {
+			$this->resourceOptionsAction();
 		} else {
-			if (!$this->request->getHttpRequest()->getMethod() === 'GET' || !$this->request->hasArgument('model')) {
-				$this->throwStatus(500, NULL, 'No repository found for model ' . $this->modelName . '.');
-			}
-		}
-
-		$lowerUnderScoredModelName = EmberDataUtility::uncamelizeClassName($this->modelName);
-		if (isset($this->receivedData->$lowerUnderScoredModelName)) {
-			$this->arguments->getArgument('model')->setDataType($this->modelName);
-			$arguments['model'] = (array)$this->receivedData->$lowerUnderScoredModelName;
-			if (isset($arguments['id'])) {
-				$arguments['model']['__identity'] = $arguments['id'];
-				unset($arguments['id']);
-			}
-
-			// HACK: for some reason ember sends <model:ember<uid>:identifier> to the server
-			$arguments['model'] = array_map(function($value) {
-				if (substr($value, 0, 1) === '<' && substr($value, -1) === '>') {
-					return array('__identity' => substr($value, strrpos($value, ':') + 1, 36));
-				}
-				if ($value !== NULL) {
-					return $value;
-				}
-			}, $arguments['model']);
-
-			// HACK: we should find another way to skip empty values
-			foreach ($arguments['model'] as $key => $value) {
-				if ($arguments['model'][$key] === NULL) {
-					unset($arguments['model'][$key]);
+			foreach ($arguments as $metaKey => $metaData) {
+				if ($metaKey !== 'modelName') {
+					$this->metaData[$metaKey] = $metaData;
 				}
 			}
+
+			if ($this->objectManager->isRegistered($repositoryName)) {
+				$this->repository = $this->objectManager->get($repositoryName);
+			} else {
+				if (!$this->request->getHttpRequest()->getMethod() === 'GET' || !$this->request->hasArgument('model')) {
+					$this->throwStatus(500, NULL, 'No repository found for model ' . $this->modelName . '.');
+				}
+			}
+
+			$lowerUnderScoredModelName = EmberDataUtility::uncamelizeClassName($this->modelName);
+			if (isset($this->receivedData->$lowerUnderScoredModelName)) {
+				$this->arguments->getArgument('model')->setDataType($this->modelName);
+				$arguments['model'] = (array)$this->receivedData->$lowerUnderScoredModelName;
+				if (isset($arguments['id'])) {
+					$arguments['model']['__identity'] = $arguments['id'];
+					unset($arguments['id']);
+				}
+
+				// HACK: for some reason ember sends <model:ember<uid>:identifier> to the server
+				$arguments['model'] = array_map(function($value) {
+					if (substr($value, 0, 1) === '<' && substr($value, -1) === '>') {
+						return array('__identity' => substr($value, strrpos($value, ':') + 1, 36));
+					}
+					if ($value !== NULL) {
+						return $value;
+					}
+				}, $arguments['model']);
+
+				// HACK: we should find another way to skip empty values
+				foreach ($arguments['model'] as $key => $value) {
+					if ($arguments['model'][$key] === NULL) {
+						unset($arguments['model'][$key]);
+					}
+				}
+			}
+
+			$this->response->setHeader('Access-Control-Allow-Origin', '*');
 		}
 
 		if ($this->request->hasArgument('model')) {
@@ -160,14 +174,29 @@ abstract class AbstractEndpointController extends ActionController {
 	 * @return string An empty string in order to prevent the view from rendering the action
 	 */
 	public function resourceOptionsAction() {
-		$allowedMethods = array('GET');
-		$uuid = $this->request->getArgument('model');
-		$model = $this->repository->findByIdentifier($uuid);
-		if ($model === NULL) {
-			$this->throwStatus(404, NULL, 'The model "' . $uuid . '" does not exist');
+		$allowedMethods = array();
+
+		$relativePath = $this->request->getHttpRequest()->getRelativePath();
+		$requestLength = strlen($relativePath);
+
+			// Remove object Identifier
+		if ($this->request->hasArgument('model')) {
+			$relativePath = str_replace('/' . $this->request->getArgument('model'), '', $relativePath);
+			$requestLength = strlen($relativePath);
 		}
-		$this->response->setHeader('Allow', implode(', ', $allowedMethods));
+
+		/** @var Route $route */
+		foreach ($this->router->getRoutes() as $route) {
+			if (substr_compare($relativePath, $route->getUriPattern(), 0, $requestLength) === 0) {
+				$allowedMethods = array_merge($allowedMethods, $route->getHttpMethods());
+			}
+		}
+
+		$this->response->setHeader('Access-Control-Allow-Origin', '*');
+		$this->response->setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+		$this->response->setHeader('Access-Control-Allow-Methods', implode(', ', array_unique($allowedMethods)));
 		$this->response->setStatus(204);
+
 		return '';
 	}
 
