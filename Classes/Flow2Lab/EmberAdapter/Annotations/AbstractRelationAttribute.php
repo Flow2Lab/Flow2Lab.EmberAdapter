@@ -14,6 +14,12 @@ abstract class AbstractRelationAttribute {
 	public $model;
 
 	/**
+	 * ClassName of the model this attribute relates to.
+	 * @var string
+	 */
+	public $className;
+
+	/**
 	 * If true, the relation will be sideloaded. Value Objects are always sideloaded.
 	 *
 	 * @var boolean

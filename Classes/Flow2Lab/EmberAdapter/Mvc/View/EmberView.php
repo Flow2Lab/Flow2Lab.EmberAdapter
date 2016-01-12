@@ -60,11 +60,21 @@ class EmberView extends AbstractView {
 	public function render() {
 		unset($this->variables['settings']);
 
+		if (isset($this->variables['meta'])) {
+			$meta = $this->variables['meta'];
+			unset($this->variables['meta']);
+		}
+
 		$this->detectRootModel($this->variables);
 
 		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
 		$this->transformValue($this->variables);
 		$this->renderArray();
+
+		if (!empty($meta)) {
+			return json_encode(array_merge($this->renderedModels, $meta));
+		}
+
 		return json_encode($this->renderedModels);
 	}
 
@@ -83,34 +93,22 @@ class EmberView extends AbstractView {
 	 * $this->view->assign('someIrrelevantKey', [$object1, $object2, $object3]);
 	 *
 	 * Will result in {'modelNames': [{...}, {...}]}
-	 *
-	 * @param array $models
 	 */
-	protected function detectRootModel($models) {
-		if (count($models) !== 1) {
-			return;
-		}
+	protected function detectRootModel() {
+		$action = $this->controllerContext->getRequest()->getControllerActionName();
 
-		$model = current($models);
+		switch ($action) {
+			case 'show':
+				$model = current($this->variables);
+				$rootModel = $this->emberModelFactory->create($model);
 
-		if (is_array($model) === TRUE) {
-			return;
-		}
-
-		// load the QueryResult
-		if ($model instanceof \Iterator) {
-			$model = iterator_to_array($model);
-			if (count($model) !== 1) {
+				if ($rootModel !== NULL) {
+					$this->rootModel = $rootModel->getName();
+				}
+				break;
+			case 'list':
+			default:
 				return;
-			}
-
-			$model = array_shift($model);
-		}
-
-		$rootModel = $this->emberModelFactory->create($model);
-
-		if ($rootModel !== NULL) {
-			$this->rootModel = $rootModel->getName();
 		}
 	}
 

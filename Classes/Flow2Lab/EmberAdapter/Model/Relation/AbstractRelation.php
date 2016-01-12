@@ -34,6 +34,21 @@ abstract class AbstractRelation {
 	}
 
 	/**
+	 * @param string $className
+	 * @return void
+	 */
+	public function setClassName($className) {
+		$this->className = $className;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getClassName() {
+		$this->className;
+	}
+
+	/**
 	 * @return boolean
 	 */
 	public function isSideloaded() {

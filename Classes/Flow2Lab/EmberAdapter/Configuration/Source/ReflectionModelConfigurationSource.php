@@ -174,6 +174,9 @@ class ReflectionModelConfigurationSource implements ModelConfigurationSourceInte
 			$parsedType = TypeHandling::parseType($tag);
 			$propertyType = ($parsedType['elementType']) ?: $parsedType['type'];
 
+				// Add className meta info
+			$relation->className = $propertyType;
+
 			if ($this->reflectionService->isClassAnnotatedWith($propertyType, ValueObject::class)) {
 				$relation->sideload = TRUE;
 			}

@@ -55,12 +55,6 @@ abstract class AbstractEndpointController extends ActionController {
 	protected $receivedData;
 
 	/**
-	 * Meta data received
-	 * @var array
-	 */
-	protected $metaData = array();
-
-	/**
 	 * @return void
 	 */
 	protected function initializeAction() {
@@ -77,22 +71,19 @@ abstract class AbstractEndpointController extends ActionController {
 
 		$arguments = $this->request->getArguments();
 		$this->modelName = $arguments['modelName'];
-		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->modelName) . 'Repository';
+
 
 		if ($this->request->getHttpRequest()->getMethod() === 'OPTIONS') {
 			$this->resourceOptionsAction();
 		} else {
-			foreach ($arguments as $metaKey => $metaData) {
-				if ($metaKey !== 'modelName') {
-					$this->metaData[$metaKey] = $metaData;
-				}
-			}
-
-			if ($this->objectManager->isRegistered($repositoryName)) {
-				$this->repository = $this->objectManager->get($repositoryName);
-			} else {
-				if (!$this->request->getHttpRequest()->getMethod() === 'GET' || !$this->request->hasArgument('model')) {
-					$this->throwStatus(500, NULL, 'No repository found for model ' . $this->modelName . '.');
+			if ($this->repository === NULL) {
+				$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->modelName) . 'Repository';
+				if ($this->objectManager->isRegistered($repositoryName)) {
+					$this->repository = $this->objectManager->get($repositoryName);
+				} else {
+					if (!$this->request->getHttpRequest()->getMethod() === 'GET' || !$this->request->hasArgument('model')) {
+						$this->throwStatus(500, NULL, 'No repository found for model ' . $this->modelName . '.');
+					}
 				}
 			}
 
@@ -193,7 +184,7 @@ abstract class AbstractEndpointController extends ActionController {
 		}
 
 		$this->response->setHeader('Access-Control-Allow-Origin', '*');
-		$this->response->setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+		$this->response->setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, content-type, accept, Authorization');
 		$this->response->setHeader('Access-Control-Allow-Methods', implode(', ', array_unique($allowedMethods)));
 		$this->response->setStatus(204);
 
