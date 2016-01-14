@@ -7,7 +7,7 @@ use TYPO3\Flow\Annotations as Flow;
  * Does not transform any values (noop).
  * @Flow\Scope("singleton")
  */
-class StringTransform extends AbstractTransform {
+class FileTransform extends AbstractTransform {
 
 	/**
 	 * @var string
