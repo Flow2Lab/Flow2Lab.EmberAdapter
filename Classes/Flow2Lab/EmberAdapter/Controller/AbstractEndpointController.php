@@ -67,73 +67,70 @@ abstract class AbstractEndpointController extends ActionController {
 			$this->request->setArgument('modelName', $className = EmberDataUtility::camelizeClassName($this->modelName));
 		}
 
+		$this->response->setHeader('Access-Control-Allow-Origin', '*');
+
+		if ($this->request->getHttpRequest()->getMethod() === 'OPTIONS') {
+			return;
+		}
+
 		$this->receivedData = json_decode($this->request->getHttpRequest()->getContent());
 
 		$arguments = $this->request->getArguments();
 		$this->modelName = $arguments['modelName'];
 
-
-		if ($this->request->getHttpRequest()->getMethod() === 'OPTIONS') {
-			$this->resourceOptionsAction();
-		} else {
-			if ($this->repository === NULL) {
-				$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->modelName) . 'Repository';
-				if ($this->objectManager->isRegistered($repositoryName)) {
-					$this->repository = $this->objectManager->get($repositoryName);
-				} else {
-					if (!$this->request->getHttpRequest()->getMethod() === 'GET' || !$this->request->hasArgument('model')) {
-						$this->throwStatus(500, NULL, 'No repository found for model ' . $this->modelName . '.');
-					}
+		if ($this->repository === NULL) {
+			$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->modelName) . 'Repository';
+			if ($this->objectManager->isRegistered($repositoryName)) {
+				$this->repository = $this->objectManager->get($repositoryName);
+			} else {
+				if (!$this->request->getHttpRequest()->getMethod() === 'GET' || !$this->request->hasArgument('model')) {
+					$this->throwStatus(500, NULL, 'No repository found for model ' . $this->modelName . '.');
 				}
 			}
+		}
 
-			$lowerUnderScoredModelName = EmberDataUtility::uncamelizeClassName($this->modelName);
-			if (isset($this->receivedData->$lowerUnderScoredModelName)) {
-				$this->arguments->getArgument('model')->setDataType($this->modelName);
-				$arguments['model'] = (array)$this->receivedData->$lowerUnderScoredModelName;
-				if (isset($arguments['id'])) {
-					$arguments['model']['__identity'] = $arguments['id'];
-					unset($arguments['id']);
-				}
-
-				// HACK: for some reason ember sends <model:ember<uid>:identifier> to the server
-				$arguments['model'] = array_map(function($value) {
-					if (substr($value, 0, 1) === '<' && substr($value, -1) === '>') {
-						return array('__identity' => substr($value, strrpos($value, ':') + 1, 36));
-					}
-					if ($value !== NULL) {
-						return $value;
-					}
-				}, $arguments['model']);
-
-				// HACK: we should find another way to skip empty values
-				foreach ($arguments['model'] as $key => $value) {
-					if ($arguments['model'][$key] === NULL) {
-						unset($arguments['model'][$key]);
-					}
-				}
+		$lowerUnderScoredModelName = EmberDataUtility::uncamelizeClassName($this->modelName);
+		if (isset($this->receivedData->$lowerUnderScoredModelName)) {
+			$this->arguments->getArgument('model')->setDataType($this->modelName);
+			$arguments['model'] = (array)$this->receivedData->$lowerUnderScoredModelName;
+			if (isset($arguments['id'])) {
+				$arguments['model']['__identity'] = $arguments['id'];
+				unset($arguments['id']);
 			}
 
-			$this->response->setHeader('Access-Control-Allow-Origin', '*');
+			// HACK: for some reason ember sends <model:ember<uid>:identifier> to the server
+			$arguments['model'] = array_map(function($value) {
+				if (substr($value, 0, 1) === '<' && substr($value, -1) === '>') {
+					return array('__identity' => substr($value, strrpos($value, ':') + 1, 36));
+				}
+				if ($value !== NULL) {
+					return $value;
+				}
+			}, $arguments['model']);
+
+			// HACK: we should find another way to skip empty values
+			foreach ($arguments['model'] as $key => $value) {
+				if ($arguments['model'][$key] === NULL) {
+					unset($arguments['model'][$key]);
+				}
+			}
 		}
 
 		if ($this->request->hasArgument('model')) {
 			$arguments[$this->resourceArgumentName] = array('__identity' => $arguments['model']);
 			$this->arguments->getArgument($this->resourceArgumentName)->setDataType($this->modelName);
 
-			// Add properties to arguments
 			if ($this->request->getHttpRequest()->getMethod() === 'PUT') {
-				$this->arguments->getArgument($this->resourceArgumentName)->setDataType($this->modelName);
 				$resourceArgumentName = $this->resourceArgumentName;
 				$arguments[$this->resourceArgumentName] = (array)$this->receivedData->$resourceArgumentName;
 				$arguments[$this->resourceArgumentName]['__identity'] = $arguments['model'];
+				$this->systemLogger->log('Model '. $resourceArgumentName, LOG_NOTICE, $arguments[$this->resourceArgumentName]);
 			}
+
+			unset($arguments['modelName']);
+			$this->request->setArguments($arguments);
 		}
-
-		unset($arguments['modelName']);
-		$this->request->setArguments($arguments);
 	}
-
 
 	/**
 	 * Allow creation of resources in createAction()

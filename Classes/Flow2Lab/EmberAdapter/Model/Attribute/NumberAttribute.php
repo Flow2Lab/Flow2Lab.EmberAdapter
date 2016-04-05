@@ -1,7 +1,7 @@
 <?php
 namespace Flow2Lab\EmberAdapter\Model\Attribute;
 
-class Number extends AbstractAttribute {
+class NumberAttribute extends AbstractAttribute {
 
 	/**
 	 * Default format set to integer.

@@ -66,6 +66,9 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 
 		foreach ($queryParams as $key => $param) {
 			switch ($key) {
+				case 'searchTerm':
+					$constraints = $this->searchTermToConstraints($param, $query);
+					break;
 				case 'limit':
 				case 'per_page':
 				case 'page_size':
@@ -121,6 +124,9 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 
 		foreach ($queryParams as $param => $value) {
 			switch ($param) {
+				case 'searchTerm':
+					$constraints = $this->searchTermToConstraints($param, $query);
+					break;
 				case 'limit':
 				case 'per_page':
 				case 'page_size':
@@ -220,11 +226,11 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 				if (count($value) > 1) {
 					$constraintArray = array();
 					foreach ($value as $arrayValue) {
-						$logicalAndConstraint[] = $query->like($property, $arrayValue);
+						$logicalAndConstraint[] = $query->like($property, '%'. $arrayValue .'%');
 					}
 					$constraint = $query->logicalAnd($constraintArray);
 				} else {
-					$constraint = $query->like($property, $value);
+					$constraint = $query->like($property, '%'. $value .'%');
 				}
 				break;
 			case 'belongsTo':
@@ -283,4 +289,28 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 
 		return $constraint;
 	}
+
+	/**
+	 * @param string $searchTerm
+	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
+	 * @return mixed
+	 */
+	protected function searchTermToConstraints($searchTerm, $query) {
+		$constraintArray = array();
+
+		$properties = $this->modelConfigurationManager->getModelPropertyNames($this->getEntityClassName());
+
+		foreach ($properties as $property) {
+			$type = $this->modelConfigurationManager->getModelAttributeType($this->getEntityClassName(), $property);
+			if ($type === 'string' && !$this->modelConfigurationManager->isRelation($this->getEntityClassName(), $property)) {
+				\TYPO3\Flow\var_dump($type, $property);
+				\TYPO3\Flow\var_dump($this->modelConfigurationManager->isRelation($this->getEntityClassName(), $property));
+
+				$constraintArray[] = $query->logicalOr($query->like($property, '%'. $searchTerm .'%'));
+			}
+		}
+
+		return $constraintArray;
+	}
+
 }
