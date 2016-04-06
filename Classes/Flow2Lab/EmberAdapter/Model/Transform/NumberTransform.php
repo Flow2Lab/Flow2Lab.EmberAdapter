@@ -11,7 +11,7 @@ class NumberTransform extends AbstractTransform {
 	/**
 	 * @var string
 	 */
-	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\Number';
+	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\NumberAttribute';
 
 	/**
 	 * Serializes any the value to match the ember attributes requirements

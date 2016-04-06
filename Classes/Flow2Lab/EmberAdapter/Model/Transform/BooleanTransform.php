@@ -11,7 +11,7 @@ class BooleanTransform extends AbstractTransform {
 	/**
 	 * @var string
 	 */
-	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\Boolean';
+	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\BooleanAttribute';
 
 	/**
 	 * Serializes any the value to match the ember attributes requirements

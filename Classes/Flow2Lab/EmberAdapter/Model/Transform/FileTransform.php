@@ -12,7 +12,7 @@ class FileTransform extends AbstractTransform {
 	/**
 	 * @var string
 	 */
-	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\File';
+	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\FileAttribute';
 
 	/**
 	 * Serializes any the value to match the ember attributes requirements

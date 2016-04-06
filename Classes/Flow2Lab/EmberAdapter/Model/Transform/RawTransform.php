@@ -12,7 +12,7 @@ class RawTransform extends AbstractTransform {
 	/**
 	 * @var string
 	 */
-	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\Raw';
+	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\RawAttribute';
 
 	/**
 	 * Serializes any the value to match the ember attributes requirements

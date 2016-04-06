@@ -12,7 +12,7 @@ class StringTransform extends AbstractTransform {
 	/**
 	 * @var string
 	 */
-	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\String';
+	protected $attributeType = 'Flow2Lab\\EmberAdapter\\Model\\Attribute\\StringAttribute';
 
 	/**
 	 * Serializes any the value to match the ember attributes requirements

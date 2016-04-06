@@ -99,7 +99,6 @@ class ArraySerializer {
 	 */
 	protected function findTransformForAttribute(AbstractAttribute $attribute) {
 		$attributeType = get_class($attribute);
-
 		if (!isset($this->transforms[$attributeType])) {
 			throw new MissingTransformException('No suitable transform available to transform the attribute type ' . $attributeType . '.', 1391459659);
 		}
