@@ -52,22 +52,86 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 	}
 
 	/**
-	 * @param $queryParams
+	 * @param array $queryParams
 	 * @return array|\TYPO3\Flow\Persistence\QueryResultInterface
 	 */
-	public function findByQueryParams($queryParams) {
+	public function findByQueryParams($queryParams = array()) {
 		$query = $this->createQuery();
 
+		$queryConstraints = $this->convertParamsToConstraints($query, $queryParams);
+
+		$constraints = $queryConstraints['constraints'];
+		$limit = $queryConstraints['limit'];
+		$offset = $queryConstraints['offset'];
+
+		if (count($constraints) > 1) {
+			return $query->matching($constraints)->setOffset($offset)->setLimit($limit)->execute();
+		} elseif (count($constraints) === 1) {
+			if (is_object($constraints)) {
+				return $query->matching($constraints)->setOffset($offset)->setLimit($limit)->execute();
+			}
+			if (is_array($constraints)) {
+				return $query->matching($constraints)->setOffset($offset)->setLimit($limit)->execute();
+			}
+		} else {
+			return $query->setOffset($offset)->setLimit($limit)->execute();
+		}
+	}
+
+	/**
+	 * @param array $queryParams
+	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
+	 */
+	public function getMetaByQueryParams($queryParams = array()) {
+		$query = $this->createQuery();
+
+		$queryConstraints = $this->convertParamsToConstraints($query, $queryParams);
+
+		$constraints = $queryConstraints['constraints'];
+		$limit = $queryConstraints['limit'];
+		$offset = $queryConstraints['offset'];
+
+		if (count($constraints) > 1) {
+			$results['meta']['total'] = $query->matching($query->logicalAnd($constraints))->execute()->count();
+		} elseif (count($constraints) === 1) {
+			if (is_object($constraints)) {
+				$results['meta']['total'] = $query->matching($constraints)->setOffset($offset)->execute()->count();
+			}
+			if (is_array($constraints)) {
+				$results['meta']['total'] = $query->matching($constraints)->setOffset($offset)->execute()->count();
+			}
+		} else {
+			$results['meta']['total'] = $query->execute()->count();
+		}
+
+		if ($results['meta']['total'] !== 0 && $limit !== NULL && $limit !== '0') {
+			$results['meta']['total_pages'] = ceil($results['meta']['total'] / $limit);
+		} else {
+			$results['meta']['total_pages'] = 1;
+		}
+		$results['meta']['per_page'] = $limit;
+
+		return $results;
+	}
+
+	/**
+	 * Converts the given params to query constraints based on their key
+	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
+	 * @param array $queryParams
+	 * @return array
+	 */
+	protected function convertParamsToConstraints(QueryInterface $query, $queryParams = array()) {
 		$limit = NULL;
 		$offset = NULL;
 		$page = 0;
 
 		$constraints = array();
-
+		$paramConstraints = array();
+		$searchTermConstraints = array();
 		foreach ($queryParams as $key => $param) {
 			switch ($key) {
 				case 'searchTerm':
-					$constraints = $this->searchTermToConstraints($param, $query);
+					$searchTermConstraints = $this->searchTermToConstraints($param, $query);
 					break;
 				case 'limit':
 				case 'per_page':
@@ -86,94 +150,49 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 					break;
 				case 'filter':
 					if ($param !== '' || $param !== NULL) {
-						$constraints = $this->convertFilterParamsToConstraints($param, $query);
+						$paramConstraints[$param] = $this->convertFilterParamsToConstraints($param, $query)[0];
 					}
 					break;
 				default:
 					if ($key !== 'filter' && ($param !== '' || $param !== NULL)) {
-						$constraints = $this->convertFilterParamsToConstraints(array($key => $param), $query);
+						$paramConstraints[$key] = $this->convertFilterParamsToConstraints(array($key => $param), $query)[0];
 					}
 					break;
 			}
+		}
+
+		if (count($paramConstraints) > 1) {
+			if (!empty($searchTermConstraints)) {
+				$constraints = $query->logicalAnd($searchTermConstraints, $paramConstraints);
+			} else {
+				$constraints = $query->logicalAnd($paramConstraints);
+			}
+		} elseif (count($paramConstraints) === 1) {
+			if (!empty($searchTermConstraints)) {
+				$constraints = $query->logicalAnd($paramConstraints, $searchTermConstraints);
+			} else {
+				$constraints = $paramConstraints[key($paramConstraints)];
+			}
+		} elseif (!empty($searchTermConstraints)) {
+			$constraints = $searchTermConstraints;
 		}
 
 		if ($page > 1) {
 			$offset = $page * $limit;
 		}
 
-		if (count($constraints) > 1) {
-			return $query->matching($query->logicalAnd($constraints))->setOffset($offset)->setLimit($limit)->execute();
-		} elseif (count($constraints) === 1) {
-			return $query->matching($constraints[0])->setOffset($offset)->setLimit($limit)->execute();
-		} else {
-			return $query->setOffset($offset)->setLimit($limit)->execute();
-		}
+		return $queryConstraints = array('constraints' => $constraints,
+			'limit' => $limit,
+			'offset' => $offset,
+			'page' => $page);
 	}
 
 	/**
-	 * @param $queryParams
-	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
-	 */
-	public function getMetaByQueryParams($queryParams) {
-		$query = $this->createQuery();
-
-		$limit = NULL;
-		$offset = NULL;
-
-		$constraints = array();
-
-		foreach ($queryParams as $param => $value) {
-			switch ($param) {
-				case 'searchTerm':
-					$constraints = $this->searchTermToConstraints($param, $query);
-					break;
-				case 'limit':
-				case 'per_page':
-				case 'page_size':
-					$limit = $value;
-					break;
-				case 'start':
-				case 'offset':
-					break;
-				case 'page':
-					break;
-				case 'filter':
-					if ($value !== '' || $value !== NULL) {
-						$constraints = $this->convertFilterParamsToConstraints($value, $query);
-					}
-					break;
-				default:
-					if ($param !== 'filter' && ($value !== '' || $value !== NULL)) {
-						$constraints = $this->convertFilterParamsToConstraints(array($param => $value), $query);
-					}
-					break;
-			}
-		}
-
-		if (count($constraints) > 1) {
-			$results['meta']['total'] = $query->matching($query->logicalAnd($constraints))->execute()->count();
-		} elseif (count($constraints) === 1) {
-			$results['meta']['total'] = $query->matching($constraints[0])->execute()->count();
-		} else {
-			$results['meta']['total'] = $query->execute()->count();
-		}
-
-		if ($results['meta']['total'] !== 0 && $limit !== NULL && $limit !== '0') {
-			$results['meta']['total_pages'] = ceil($results['meta']['total'] / $limit);
-		} else {
-			$results['meta']['total_pages'] = 1;
-		}
-		$results['meta']['per_page'] = $limit;
-
-		return $results;
-	}
-
-	/**
-	 * @param $filterParams
-	 * @param \TYPO3\Flow\Persistence\QueryResultInterface $query
+	 * @param array $filterParams
+	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
 	 * @return array
 	 */
-	protected function convertFilterParamsToConstraints($filterParams, $query) {
+	protected function convertFilterParamsToConstraints($filterParams, QueryInterface $query) {
 		$constraints = array();
 		foreach ($filterParams as $property => $filterValue) {
 			$constraints[] = $this->convertFilterParamsToConstraint($property, $filterValue, $query);
@@ -182,13 +201,12 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 	}
 
 	/**
-	 * @param $property
-	 * @param $value
-	 * @param \TYPO3\Flow\Persistence\QueryResultInterface $query
+	 * @param string $property
+	 * @param mixed $value
+	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
 	 * @return array
 	 */
-	protected function convertFilterParamsToConstraint($property, $value, $query) {
-		$constraint = array();
+	protected function convertFilterParamsToConstraint($property, $value, QueryInterface $query) {
 		$relationModel = NULL;
 			// Determine attribute type
 		if ($this->modelConfigurationManager->isRelation($this->getEntityClassName(), $property)) {
@@ -295,22 +313,19 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 	 * @param \TYPO3\Flow\Persistence\QueryInterface $query
 	 * @return mixed
 	 */
-	protected function searchTermToConstraints($searchTerm, $query) {
+	protected function searchTermToConstraints($searchTerm, QueryInterface $query) {
 		$constraintArray = array();
 
 		$properties = $this->modelConfigurationManager->getModelPropertyNames($this->getEntityClassName());
 
 		foreach ($properties as $property) {
 			$type = $this->modelConfigurationManager->getModelAttributeType($this->getEntityClassName(), $property);
-			if ($type === 'string' && !$this->modelConfigurationManager->isRelation($this->getEntityClassName(), $property)) {
-				\TYPO3\Flow\var_dump($type, $property);
-				\TYPO3\Flow\var_dump($this->modelConfigurationManager->isRelation($this->getEntityClassName(), $property));
-
-				$constraintArray[] = $query->logicalOr($query->like($property, '%'. $searchTerm .'%'));
+			if (($type === 'string' || $type === 'number') && !$this->modelConfigurationManager->isRelation($this->getEntityClassName(), $property)) {
+				$constraintArray[] = $query->like($property, '%'. $searchTerm .'%');
 			}
 		}
 
-		return $constraintArray;
+		return $query->logicalOr($constraintArray);
 	}
 
 }
