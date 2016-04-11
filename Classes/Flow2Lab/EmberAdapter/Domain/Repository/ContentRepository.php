@@ -150,7 +150,7 @@ class ContentRepository extends \TYPO3\Flow\Persistence\Repository {
 					break;
 				case 'filter':
 					if ($param !== '' || $param !== NULL) {
-						$paramConstraints[$param] = $this->convertFilterParamsToConstraints($param, $query)[0];
+						$paramConstraints = $this->convertFilterParamsToConstraints($param, $query);
 					}
 					break;
 				default:
