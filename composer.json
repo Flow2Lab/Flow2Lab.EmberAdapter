@@ -1,27 +1,34 @@
 {
-	"name": "flow2lab/emberadapter",
-	"description": "An adapter package for Ember Data.",
-	"keywords": ["php"],
-	"type": "typo3-flow-package",
-	"minimum-stability": "dev",
-	"license": "MIT",
-	"authors": [
-		{
-			"name": "Philipp Maier"
-		},
-		{
-			"name": "Sebastiaan van Parijs",
-			"email": "svparijs@refactory.it",
-			"homepage": "http://rfy.io",
-			"role": "Developer"
-		}
-	],
-	"require": {
-		"typo3/flow": "*"
-	},
-	"autoload": {
-		"psr-0": {
-			"Flow2Lab\\EmberAdapter": "Classes/"
-		}
-	}
+    "name": "flow2lab/emberadapter",
+    "description": "An adapter package for Ember Data.",
+    "keywords": [
+        "php"
+    ],
+    "type": "typo3-flow-package",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Philipp Maier"
+        },
+        {
+            "name": "Sebastiaan van Parijs",
+            "email": "svparijs@refactory.it",
+            "homepage": "http://rfy.io",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "typo3/flow": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Flow2Lab\\EmberAdapter": "Classes/"
+        }
+    },
+    "extra": {
+        "applied-flow-migrations": [
+            "TYPO3.FLOW3-201201261636"
+        ]
+    }
 }
