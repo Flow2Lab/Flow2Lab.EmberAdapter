@@ -7,7 +7,7 @@ namespace Flow2Lab\EmberAdapter\Annotations;
  * @Annotation
  * @Target("CLASS")
  */
-final class Model {
+class Model {
 
 	/**
 	 * Name of the model in the ember application. If left empty, the simple class name will be used.

@@ -7,7 +7,7 @@ namespace Flow2Lab\EmberAdapter\Annotations;
  * @Annotation
  * @Target("PROPERTY")
  */
-final class Attribute {
+class Attribute {
 
 	/**
 	 * Attribute name in the ember model. If left empty, the class property name will be used.
