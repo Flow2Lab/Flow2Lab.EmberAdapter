@@ -1,13 +1,14 @@
 <?php
 namespace Flow2Lab\EmberAdapter\Annotations;
 
+use TYPO3\Flow\Annotations;
 /**
  * Marks a property of the domain model as ember attribute.
  *
  * @Annotation
  * @Target("PROPERTY")
  */
-class Attribute {
+final class Attribute {
 
 	/**
 	 * Attribute name in the ember model. If left empty, the class property name will be used.
