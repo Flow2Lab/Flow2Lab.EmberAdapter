@@ -1,7 +1,10 @@
 <?php
 namespace Flow2Lab\EmberAdapter\Annotations;
 
+use TYPO3\Flow\Annotations as Flow;
+
 /**
+ * @Flow\Proxy(false)
  * @Annotation
  * @Target("PROPERTY")
  */

@@ -1,6 +1,13 @@
 <?php
 namespace Flow2Lab\EmberAdapter\Annotations;
 
+use TYPO3\Flow\Annotations as Flow;
+
+/**
+ * @Flow\Proxy(false)
+ * Class AbstractRelationAttribute
+ * @package Flow2Lab\EmberAdapter\Annotations
+ */
 abstract class AbstractRelationAttribute {
 
 	const RELATION_BELONGS_TO = 'belongsTo';

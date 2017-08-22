@@ -1,10 +1,11 @@
 <?php
 namespace Flow2Lab\EmberAdapter\Annotations;
 
-use TYPO3\Flow\Annotations;
+use TYPO3\Flow\Annotations as Flow;
+
 /**
  * Marks a property of the domain model as ember attribute.
- *
+ * @Flow\Proxy(false)
  * @Annotation
  * @Target("PROPERTY")
  */

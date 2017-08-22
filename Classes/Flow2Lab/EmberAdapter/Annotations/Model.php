@@ -1,9 +1,12 @@
 <?php
 namespace Flow2Lab\EmberAdapter\Annotations;
 
+use TYPO3\Flow\Annotations as Flow;
+
 /**
  * Marks a class as part of the ember model
  *
+ * @Flow\Proxy(false)
  * @Annotation
  * @Target("CLASS")
  */
